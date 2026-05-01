@@ -43,6 +43,23 @@ public class ModelEngineListeners implements Listener {
         if (e.getVehicle() == null || e.getVehicle().getModeledEntity() == null || e.getVehicle().getModeledEntity().getBase() == null)
             return;
 
+        // Bukkit.getEntity() must be called on the main thread.
+        // If this event is fired from an async thread (e.g. MythicMobs scheduler),
+        // schedule the logic to run on the main thread instead.
+        if (!Bukkit.isPrimaryThread()) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    processMountingPet(e);
+                }
+            }.runTask(MCPets.getInstance());
+            return;
+        }
+
+        processMountingPet(e);
+    }
+
+    private void processMountingPet(ModelMountEvent e) {
         Entity entity;
         try {
             entity = Bukkit.getEntity(e.getVehicle().getModeledEntity().getBase().getUUID());
