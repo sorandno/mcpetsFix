@@ -12,6 +12,7 @@ import fr.nocsy.mcpets.data.Pet;
 import fr.nocsy.mcpets.modeler.bone.AbstractNameTag;
 import fr.nocsy.mcpets.modeler.bone.ModelEngineNameTag;
 import fr.nocsy.mcpets.modeler.listeners.ModelEngineListeners;
+import fr.nocsy.mcpets.utils.debug.Debugger;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,15 +26,24 @@ public class ModelEngineModeler implements AbstractModeler {
 
     @Override
     public boolean mountDriver(UUID petUUID, Entity rider, String mountType) {
+        Debugger.send("[ME mountDriver] start rider=" + rider.getName() + " pet=" + petUUID + " mountType=" + mountType);
+
         ModeledEntity model = ModelEngineAPI.getModeledEntity(petUUID);
-        if (model == null)
+        if (model == null) {
+            Debugger.send("[ME mountDriver] FAIL: ModeledEntity is null for " + petUUID);
             return false;
+        }
 
         MountManager mountManager = model.getMountData().getMainMountManager();
-        if (mountManager == null)
+        if (mountManager == null) {
+            Debugger.send("[ME mountDriver] FAIL: MountManager is null");
             return false;
+        }
 
         MountControllerType controllerType = (MountControllerType) ModelEngineAPI.getMountControllerTypeRegistry().get(mountType);
+        Debugger.send("[ME mountDriver] controllerType=" + controllerType
+                + " existingDriver=" + (mountManager.getDriver() != null ? mountManager.getDriver().getName() : "none")
+                + " riderVehicle=" + (rider.getVehicle() != null));
 
         if (rider.getVehicle() != null)
             rider.getVehicle().eject();
@@ -43,6 +53,7 @@ public class ModelEngineModeler implements AbstractModeler {
         mountManager.mountDriver(rider, controllerType, mountController -> {
             mountController.setCanDamageMount(false);
         });
+        Debugger.send("[ME mountDriver] success - driver is now " + rider.getName());
         return true;
     }
 

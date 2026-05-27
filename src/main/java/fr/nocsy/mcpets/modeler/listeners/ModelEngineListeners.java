@@ -9,6 +9,7 @@ import fr.nocsy.mcpets.data.config.GlobalConfig;
 import fr.nocsy.mcpets.data.config.Language;
 import fr.nocsy.mcpets.data.flags.DismountPetFlag;
 import fr.nocsy.mcpets.data.flags.FlagsManager;
+import fr.nocsy.mcpets.listeners.GeyserMountSyncTask;
 import fr.nocsy.mcpets.utils.debug.Debugger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -16,6 +17,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import fr.nocsy.mcpets.MCPets;
+
+import java.util.UUID;
 
 public class ModelEngineListeners implements Listener {
 
@@ -27,7 +30,11 @@ public class ModelEngineListeners implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                Pet pet = Pet.getFromEntity(Bukkit.getEntity(e.getVehicle().getModeledEntity().getBase().getUUID()));
+                UUID baseUUID = e.getVehicle().getModeledEntity().getBase().getUUID();
+                // A Geyser re-sync re-mount briefly dismounts the driver; don't despawn the pet for it.
+                if (GeyserMountSyncTask.isResyncing(baseUUID))
+                    return;
+                Pet pet = Pet.getFromEntity(Bukkit.getEntity(baseUUID));
                 if (pet != null && pet.isDespawnOnDismount()) {
                     pet.despawn(PetDespawnReason.DISMOUNT);
                 }
@@ -60,9 +67,15 @@ public class ModelEngineListeners implements Listener {
     }
 
     private void processMountingPet(ModelMountEvent e) {
+        UUID baseUUID = e.getVehicle().getModeledEntity().getBase().getUUID();
+        // A Geyser re-sync re-mount must not re-run permission/region checks (which
+        // could cancel the re-mount); it was already validated at the initial mount.
+        if (GeyserMountSyncTask.isResyncing(baseUUID))
+            return;
+
         Entity entity;
         try {
-            entity = Bukkit.getEntity(e.getVehicle().getModeledEntity().getBase().getUUID());
+            entity = Bukkit.getEntity(baseUUID);
         } catch (Exception ex) {
             entity = null;
         }

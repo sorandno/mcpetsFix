@@ -11,8 +11,11 @@ import fr.nocsy.mcpets.data.config.Language;
 import fr.nocsy.mcpets.data.inventories.PetInteractionMenu;
 import fr.nocsy.mcpets.data.inventories.PetInventory;
 import fr.nocsy.mcpets.data.inventories.PetInventoryHolder;
+import fr.nocsy.mcpets.MCPets;
 import fr.nocsy.mcpets.data.inventories.PetMenu;
+import fr.nocsy.mcpets.utils.GeyserUtils;
 import fr.nocsy.mcpets.utils.Utils;
+import org.bukkit.Bukkit;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -43,6 +46,48 @@ public class PetInteractionMenuListener implements Listener {
     }
 
     public static void mount(@NotNull final Player p, final Pet pet) {
+        final boolean isBedrock = GeyserUtils.isBedrockPlayer(p);
+
+        MCPets.getLog().info("[Geyser Mount] player=" + p.getName()
+                + " isBedrock=" + isBedrock
+                + " isInsideVehicle=" + p.isInsideVehicle()
+                + " hasMount=" + pet.hasMount(p)
+                + " petStillHere=" + pet.isStillHere());
+
+        if (isBedrock) {
+            // Bedrock clients do not reliably fire EntityDismountEvent on custom-seat
+            // dismount, leaving a stale vehicle/driver state that permanently blocks
+            // re-mounting via the normal isInsideVehicle() guard.
+            //
+            // Guard with resyncingPets so that the brief ModelDismountEvent from
+            // mountDriver's internal cleanup does not trigger despawnOnDismount.
+            final UUID petUUID = pet.isStillHere() ? pet.getActiveMob().getEntity().getUniqueId() : null;
+            final boolean wasStaleDriver = pet.hasMount(p);
+
+            if (petUUID != null && wasStaleDriver)
+                GeyserMountSyncTask.addResyncing(petUUID);
+
+            if (p.isInsideVehicle())
+                p.leaveVehicle();
+
+            final boolean setMountResult = pet.setMount(p);
+            final boolean actuallyMounted = pet.hasMount(p);
+
+            MCPets.getLog().info("[Geyser Mount] result: setMount=" + setMountResult
+                    + " actuallyMounted=" + actuallyMounted
+                    + " player=" + p.getName());
+
+            if (petUUID != null && wasStaleDriver) {
+                final UUID finalPetUUID = petUUID;
+                Bukkit.getScheduler().runTaskLater(MCPets.getInstance(),
+                        () -> GeyserMountSyncTask.removeResyncing(finalPetUUID), 2L);
+            }
+
+            if (!actuallyMounted)
+                Language.NOT_MOUNTABLE.sendMessage(p);
+            return;
+        }
+
         if (p.isInsideVehicle()) {
             Language.ALREADY_INSIDE_VEHICULE.sendMessage(p);
         } else if (!pet.setMount(p)) {
