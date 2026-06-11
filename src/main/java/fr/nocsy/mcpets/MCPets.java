@@ -20,6 +20,7 @@ import fr.nocsy.mcpets.data.livingpets.PetStats;
 import fr.nocsy.mcpets.data.sql.Databases;
 import fr.nocsy.mcpets.data.sql.PlayerData;
 import fr.nocsy.mcpets.listeners.EventListener;
+import fr.nocsy.mcpets.listeners.GeyserMountSyncTask;
 import fr.nocsy.mcpets.modeler.AbstractModeler;
 import fr.nocsy.mcpets.modeler.BetterModelModeler;
 import fr.nocsy.mcpets.modeler.ModelEngineModeler;
@@ -55,6 +56,8 @@ public class MCPets extends JavaPlugin {
 
     @Getter
     private static AbstractModeler modeler;
+
+    private GeyserMountSyncTask geyserMountSyncTask;
 
     @Getter
     private static PlaceholderAPICompat placeholderAPI;
@@ -152,6 +155,9 @@ public class MCPets extends JavaPlugin {
         getLog().info("-=-=-=-= -=-=-=-=-=-=- =-=-=-=-");
 
         FlagsManager.launchFlags();
+
+        geyserMountSyncTask = new GeyserMountSyncTask();
+        geyserMountSyncTask.launch();
     }
 
     @Override
@@ -163,6 +169,11 @@ public class MCPets extends JavaPlugin {
         // Cancel pending editor conversations before the JAR is unloaded to avoid
         // IllegalStateException (zip file closed) if a listener fires after disable.
         EditorConversation.clearAll();
+
+        if (geyserMountSyncTask != null) {
+            geyserMountSyncTask.stop();
+            geyserMountSyncTask = null;
+        }
 
         if (modeler != null) {
             modeler.unregisterListeners();

@@ -1352,22 +1352,28 @@ public class Pet {
         Utils.callEvent(vanillaMountEvent);
         Utils.callEvent(event);
 
-        // We still return true as it's a normal situation, not linked to mounting point issue
-        if (event.isCancelled() || vanillaMountEvent.isCancelled())
+        if (event.isCancelled() || vanillaMountEvent.isCancelled()) {
+            Debugger.send("[setMount] cancelled - EntityMountPetEvent=" + event.isCancelled()
+                    + " EntityMountEvent=" + vanillaMountEvent.isCancelled()
+                    + " rider=" + ent.getName());
             return true;
+        }
 
         if (isStillHere()) {
             final UUID petUUID = activeMob.getEntity().getUniqueId();
             try {
                 if (!MCPets.getModeler().mountDriver(petUUID, ent, mountType)) {
+                    Debugger.send("[setMount] mountDriver returned false - falling back to addPassenger for " + ent.getName());
                     activeMob.getEntity().getBukkitEntity().addPassenger(ent);
                     return false;
                 }
             } catch (final IllegalStateException ex) {
+                Debugger.send("[setMount] IllegalStateException for " + ent.getName() + ": " + ex.getMessage());
                 Language.ALREADY_MOUNTING.sendMessageFormated(ent);
             }
             return true;
         }
+        Debugger.send("[setMount] pet is not still here - cannot mount " + ent.getName());
         return false;
     }
 
