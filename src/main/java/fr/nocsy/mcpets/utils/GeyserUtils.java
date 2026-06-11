@@ -5,7 +5,9 @@ import fr.nocsy.mcpets.utils.debug.Debugger;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Detects players connected through Geyser/Floodgate (Bedrock Edition).
@@ -21,7 +23,16 @@ public class GeyserUtils {
     private static Object floodgateApi;
     private static Method isFloodgatePlayerMethod;
 
+    /** Cache Bedrock detection results per UUID to avoid repeated Floodgate API calls. */
+    private static final Map<UUID, Boolean> cache = new ConcurrentHashMap<>();
+
     private GeyserUtils() {
+    }
+
+    /** Call on player quit to prevent the cache from growing unbounded. */
+    public static void invalidate(final UUID uuid) {
+        if (uuid != null)
+            cache.remove(uuid);
     }
 
     private static synchronized void init() {
@@ -49,15 +60,21 @@ public class GeyserUtils {
         if (uuid == null)
             return false;
 
+        final Boolean cached = cache.get(uuid);
+        if (cached != null)
+            return cached;
+
         init();
 
+        boolean result;
         if (floodgateApi != null && isFloodgatePlayerMethod != null) {
             try {
-                final Object result = isFloodgatePlayerMethod.invoke(floodgateApi, uuid);
-                if (result instanceof Boolean) {
-                    boolean value = (Boolean) result;
-                    Debugger.send("[GeyserUtils] " + uuid + " → Floodgate API → isBedrockPlayer=" + value);
-                    return value;
+                final Object res = isFloodgatePlayerMethod.invoke(floodgateApi, uuid);
+                if (res instanceof Boolean) {
+                    result = (Boolean) res;
+                    Debugger.send("[GeyserUtils] " + uuid + " → Floodgate API → isBedrockPlayer=" + result);
+                    cache.put(uuid, result);
+                    return result;
                 }
             } catch (final Throwable ignored) {
                 // Fall through to the heuristic below.
@@ -65,9 +82,10 @@ public class GeyserUtils {
         }
 
         // Floodgate-generated UUIDs have most significant 64 bits == 0.
-        boolean heuristic = uuid.getMostSignificantBits() == 0L;
-        Debugger.send("[GeyserUtils] " + uuid + " → UUID heuristic → isBedrockPlayer=" + heuristic);
-        return heuristic;
+        result = uuid.getMostSignificantBits() == 0L;
+        Debugger.send("[GeyserUtils] " + uuid + " → UUID heuristic → isBedrockPlayer=" + result);
+        cache.put(uuid, result);
+        return result;
     }
 
     public static boolean isBedrockPlayer(final Player player) {

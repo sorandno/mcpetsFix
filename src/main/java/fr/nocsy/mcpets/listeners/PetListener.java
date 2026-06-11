@@ -159,6 +159,7 @@ public class PetListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void disconnectPlayer(PlayerQuitEvent e) {
         Player p = e.getPlayer();
+        fr.nocsy.mcpets.utils.GeyserUtils.invalidate(p.getUniqueId());
         UUID uuid = p.getUniqueId();
         List<Pet> pets = Pet.getActivePetsForOwner(uuid);
         // Create a copy to avoid ConcurrentModificationException when despawning modifies the list
@@ -310,6 +311,10 @@ public class PetListener implements Listener {
     @EventHandler
     public void teleport(PlayerTeleportEvent e) {
         Player p = e.getPlayer();
+        // Skip if the player is currently being seated on a mount (e.g. SafeTeleport
+        // repositioning, ModelEngine seat adjustment). The guard is cleared after 2 ticks.
+        if (Pet.isMounting(p.getUniqueId()))
+            return;
         List<Pet> pets = Pet.getActivePetsForOwner(p.getUniqueId());
         for (Pet pet : List.copyOf(pets)) {
             pet.dismount(p);
@@ -328,13 +333,20 @@ public class PetListener implements Listener {
                     return;
                 }
             }
-            
+
             if (GlobalConfig.getInstance().isDismountOnDamagedExcludePlayers())
                 return;
-                
+
             Player p = (Player) e.getEntity();
+            // Skip if the player is in the process of mounting.
+            if (Pet.isMounting(p.getUniqueId()))
+                return;
             Pet pet = Pet.fromOwner(p.getUniqueId());
             if (pet != null && pet.hasMount(p)) {
+                // Flying mounts are not dismounted by damage — the rider stays seated
+                // regardless of incoming damage (same as vanilla elytra / dragon riding).
+                if (MCPets.getModeler().isFlyingMount(pet, p.getUniqueId()))
+                    return;
                 pet.dismount(p);
             }
         }

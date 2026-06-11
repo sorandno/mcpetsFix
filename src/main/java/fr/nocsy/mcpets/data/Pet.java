@@ -52,12 +52,20 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class Pet {
 
     //---------------------------------------------------------------------
     public static final String SIGNAL_STICK_TAG = "&MCPets-SignalSticks&";
+
+    /** Players currently in the process of mounting a pet (setMount in progress). */
+    private static final Set<UUID> mountingOwners = ConcurrentHashMap.newKeySet();
+
+    public static boolean isMounting(final UUID playerUUID) {
+        return mountingOwners.contains(playerUUID);
+    }
 
     //---------------------------------------------------------------------
     public static final int BLOCKED = 2;
@@ -1361,15 +1369,33 @@ public class Pet {
 
         if (isStillHere()) {
             final UUID petUUID = activeMob.getEntity().getUniqueId();
+            final UUID riderUUID = ent.getUniqueId();
+            // Guard: suppress teleport/damage-dismount handlers during mount setup.
+            mountingOwners.add(riderUUID);
             try {
                 if (!MCPets.getModeler().mountDriver(petUUID, ent, mountType)) {
                     Debugger.send("[setMount] mountDriver returned false - falling back to addPassenger for " + ent.getName());
                     activeMob.getEntity().getBukkitEntity().addPassenger(ent);
+                    mountingOwners.remove(riderUUID);
                     return false;
                 }
             } catch (final IllegalStateException ex) {
                 Debugger.send("[setMount] IllegalStateException for " + ent.getName() + ": " + ex.getMessage());
                 Language.ALREADY_MOUNTING.sendMessageFormated(ent);
+                mountingOwners.remove(riderUUID);
+                return true;
+            }
+            // Remove the guard after 2 ticks so that post-mount events (SafeTeleport,
+            // fall damage, etc.) from the same tick are also suppressed.
+            if (MCPets.getInstance() != null && MCPets.getInstance().isEnabled()) {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        mountingOwners.remove(riderUUID);
+                    }
+                }.runTaskLater(MCPets.getInstance(), 2L);
+            } else {
+                mountingOwners.remove(riderUUID);
             }
             return true;
         }

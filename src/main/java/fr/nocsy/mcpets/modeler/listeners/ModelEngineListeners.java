@@ -27,15 +27,17 @@ public class ModelEngineListeners implements Listener {
         if (e.getVehicle() == null || e.getVehicle().getModeledEntity() == null || e.getVehicle().getModeledEntity().getBase() == null)
             return;
 
+        UUID baseUUID = e.getVehicle().getModeledEntity().getBase().getUUID();
+
         new BukkitRunnable() {
             @Override
             public void run() {
-                UUID baseUUID = e.getVehicle().getModeledEntity().getBase().getUUID();
                 // A Geyser re-sync re-mount briefly dismounts the driver; don't despawn the pet for it.
                 if (GeyserMountSyncTask.isResyncing(baseUUID))
                     return;
                 Pet pet = Pet.getFromEntity(Bukkit.getEntity(baseUUID));
                 if (pet != null && pet.isDespawnOnDismount()) {
+                    Debugger.send("[ModelDismountEvent] despawning pet " + pet.getId());
                     pet.despawn(PetDespawnReason.DISMOUNT);
                 }
             }
