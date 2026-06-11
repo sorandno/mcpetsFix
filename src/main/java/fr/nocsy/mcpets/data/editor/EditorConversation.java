@@ -27,12 +27,12 @@ public class EditorConversation {
 
     public void start() {
         conversations.put(player.getUniqueId(), this);
-        player.sendMessage("§aPlease type in the chat the value you want to set for the \"§e" + editorItem.getId().replace("_", " ").toLowerCase() + "§a\".");
+        player.sendMessage("§aチャットに \"§e" + editorItem.getId().replace("_", " ").toLowerCase() + "§a\" に設定したい値を入力してください。");
 
         if (editorItem.getType().equals(EditorExpectationType.STRING_LIST)) {
-            player.sendMessage("§eSeperate the different elements with a comma §c, §e like this example: §6SPELL,SHIELD");
+            player.sendMessage("§e各要素をカンマ §c, §e で区切ってください。例: §6SPELL,SHIELD");
         }
-        player.sendMessage("§aType §cQuit§a if you don't want to change the value anymore.");
+        player.sendMessage("§a値を変更しない場合は §cQuit§a と入力してください。");
     }
 
     public boolean entryMatch(String entry) {
@@ -45,24 +45,24 @@ public class EditorConversation {
 
     public void quit() {
         conversations.remove(player.getUniqueId());
-        player.sendMessage("§cThe value was left unchanged.");
+        player.sendMessage("§c値は変更されませんでした。");
     }
 
     public void end() {
         conversations.remove(player.getUniqueId());
-        player.sendMessage("§aThe value for \"§e" + editorItem.getId().replace("_", " ").toLowerCase() + "§a\" was changed successfully!");
-        player.sendMessage("§aDon't forget to §nreload§a MCPets for the changes to take effect.");
+        player.sendMessage("§a\"§e" + editorItem.getId().replace("_", " ").toLowerCase() + "§a\" の値が正常に変更されました！");
+        player.sendMessage("§a変更を反映するには §nMCPets をリロード§a することを忘れずに。");
     }
 
     /**
-     * Clear all active editor conversations.
-     * Called on plugin disable to prevent {@link IllegalStateException} (zip file closed)
-     * that occurs when a listener tries to load a class from an already unloaded JAR.
+     * アクティブなエディタ会話をすべてクリアする。
+     * プラグイン無効化時に呼び出し、アンロード済みJARからクラスを読み込もうとする
+     * リスナーによる {@link IllegalStateException}（zip file closed）を防ぐ。
      */
     public static void clearAll() {
         for (EditorConversation conversation : conversations.values()) {
             if (conversation.getPlayer() != null && conversation.getPlayer().isOnline()) {
-                conversation.getPlayer().sendMessage("§cThe editor conversation was interrupted because the plugin was reloaded.");
+                conversation.getPlayer().sendMessage("§cプラグインがリロードされたため、エディタ会話が中断されました。");
             }
         }
         conversations.clear();

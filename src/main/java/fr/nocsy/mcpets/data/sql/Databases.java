@@ -30,9 +30,9 @@ public class Databases {
     private static ConcurrentHashMap<UUID, Object> playerLocks = new ConcurrentHashMap<>();
 
     // -------------------------------------------------------------------------
-    // Active-pet record: remembers the pet a player had active when they quit,
-    // used to restore it on the destination server after a Velocity cross-server
-    // switch via the dedicated mcpets_active_pet table.
+    // アクティブペットレコード: プレイヤーがログアウト時に使用していたペットを記憶し、
+    // Velocityクロスサーバー切り替え後に目的サーバーで復元するための
+    // 専用テーブル mcpets_active_pet を使用する。
     // -------------------------------------------------------------------------
 
     private static final String PET_ID_DELIMITER = ",";
@@ -50,32 +50,43 @@ public class Databases {
             this.updatedAt = updatedAt;
         }
 
-        /** All active pet IDs stored in this record (may be multiple). */
+        /** このレコードに保存されているアクティブペットIDの一覧（複数可）。 */
         public List<String> getPetIds()  { return petIds; }
-        /** Skin UUID for a given pet ID, or null if the pet had no skin active. */
+        /** 指定ペットIDのスキンUUID。スキン未設定の場合はnull。 */
         public String getSkinUuid(String petId) { return skinUuids.get(petId); }
         public long   getUpdatedAt() { return updatedAt; }
     }
 
     public static boolean init() {
+        // MySQL明示的に無効化 — YAMLへフォールバック（ログなし）
         if (GlobalConfig.getInstance().isDisableMySQL()) {
-            MCPets.getInstance().getLogger().info("MySQL is disabled. Flat support will be used.");
             return false;
         }
-        Databases.setMySQL(new MySQLDB(GlobalConfig.getInstance().getMySQL_USER(),
-                GlobalConfig.getInstance().getMySQL_PASSWORD(),
-                GlobalConfig.getInstance().getMySQL_HOST(),
-                GlobalConfig.getInstance().getMySQL_PORT(),
-                GlobalConfig.getInstance().getMySQL_DB()));
+
+        String host = GlobalConfig.getInstance().getMySQL_HOST();
+        String user = GlobalConfig.getInstance().getMySQL_USER();
+        String pass = GlobalConfig.getInstance().getMySQL_PASSWORD();
+        String port = GlobalConfig.getInstance().getMySQL_PORT();
+        String db   = GlobalConfig.getInstance().getMySQL_DB();
+
+        // MySQL認証情報が未設定 — YAMLへフォールバック（ログなし）
+        if (isBlankOrNull(host) || isBlankOrNull(user) || isBlankOrNull(db)) {
+            return false;
+        }
+
+        Databases.setMySQL(new MySQLDB(user, pass, host, port, db));
         if (!Databases.getMySQL().init()) {
-            MCPets.getInstance().getLogger().info("[Database] Can't initialize MySQL.");
-            MCPets.getInstance().getLogger().info("[Database] Will be using YAML support instead (no worry it's not a bug).");
+            MCPets.getInstance().getLogger().warning("[MCPets] MySQLへの接続に失敗しました — YAMLストレージにフォールバックします。");
             GlobalConfig.getInstance().setDatabaseSupport(false);
             return false;
         }
         GlobalConfig.getInstance().setDatabaseSupport(true);
         createSQLTables();
         return true;
+    }
+
+    private static boolean isBlankOrNull(String s) {
+        return s == null || s.isBlank();
     }
 
     public static void createSQLTables() {
@@ -90,7 +101,7 @@ public class Databases {
                  getMySQL().query("ALTER TABLE " + table + " ADD lastActivePet TEXT;");
             }
         } catch (SQLException e) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to check lastActivePet column", e);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "lastActivePetカラムの確認に失敗しました", e);
         }
         createActivePetTable();
     }
@@ -118,7 +129,7 @@ public class Databases {
                 synchronized (getLockForPlayer(uuid)) {
                     PlayerData pd = PlayerData.getEmpty(uuid);
 
-                    // Unserialize the pet stats first, coz it influences the inventories
+                    // まずペットスタットをデシリアライズ（インベントリに影響するため）
                     PetStats.remove(uuid);
 
                     for (String seria : playerData.getString("data").split(";;;")) {
@@ -129,12 +140,12 @@ public class Databases {
                         PetStats.register(stats);
                     }
 
-                    // Unserialize the pet names; strip any legacy __active__ key silently
+                    // ペット名をデシリアライズ（レガシーの__active__キーはサイレントに削除）
                     ConcurrentHashMap<String, String> names = unserializeData(playerData, "names");
                     names.remove("__active__");
                     pd.setMapOfRegisteredNames(names);
 
-                    // Unserialize the pet inventories
+                    // ペットインベントリをデシリアライズ
                     pd.setMapOfRegisteredInventories(unserializeData(playerData, "inventories"));
                     for (String petId : pd.getMapOfRegisteredInventories().keySet()) {
                         String seriaInv = pd.getMapOfRegisteredInventories().get(petId);
@@ -144,14 +155,14 @@ public class Databases {
                     try {
                         pd.setLastActivePet(playerData.getString("lastActivePet"));
                     } catch (SQLException e) {
-                        // Column might not exist yet
+                        // カラムが未作成の場合
                     }
                     PlayerData.getRegisteredData().put(uuid, pd);
                 }
             }
         }
         catch (SQLException e1) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to load player data from database", e1);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "データベースからのプレイヤーデータ読み込みに失敗しました", e1);
             return false;
         }
 
@@ -166,7 +177,7 @@ public class Databases {
         if (!GlobalConfig.getInstance().isDatabaseSupport())
             return false;
 
-        // Update the SQL query to fetch data for the specific player with the provided UUID
+        // 指定されたUUIDのプレイヤーデータを取得するSQLクエリを実行
         ResultSet playerData = getMySQL().preparedQuery("SELECT * FROM " + table + " WHERE uuid=?", playerUUID.toString());
 
         if (playerData == null)
@@ -180,7 +191,7 @@ public class Databases {
                 synchronized (getLockForPlayer(uuid)) {
                     PlayerData pd = PlayerData.getEmpty(uuid);
 
-                    // Unserialize the pet stats first, coz it influences the inventories
+                    // まずペットスタットをデシリアライズ（インベントリに影響するため）
                     PetStats.remove(uuid);
 
                     for (String seria : playerData.getString("data").split(";;;")) {
@@ -191,12 +202,12 @@ public class Databases {
                         PetStats.register(stats);
                     }
 
-                    // Unserialize the pet names; strip any legacy __active__ key silently
+                    // ペット名をデシリアライズ（レガシーの__active__キーはサイレントに削除）
                     ConcurrentHashMap<String, String> names = unserializeData(playerData, "names");
                     names.remove("__active__");
                     pd.setMapOfRegisteredNames(names);
 
-                    // Unserialize the pet inventories
+                    // ペットインベントリをデシリアライズ
                     pd.setMapOfRegisteredInventories(unserializeData(playerData, "inventories"));
                     for (String petId : pd.getMapOfRegisteredInventories().keySet()) {
                         String seriaInv = pd.getMapOfRegisteredInventories().get(petId);
@@ -206,14 +217,14 @@ public class Databases {
                     try {
                         pd.setLastActivePet(playerData.getString("lastActivePet"));
                     } catch (SQLException e) {
-                        // Column might not exist yet
+                        // カラムが未作成の場合
                     }
                     PlayerData.getRegisteredData().put(uuid, pd);
                 }
             }
         }
         catch (SQLException e1) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to load player data for " + playerUUID, e1);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "プレイヤーデータの読み込みに失敗しました: " + playerUUID, e1);
             return false;
         }
         return true;
@@ -270,23 +281,23 @@ public class Databases {
             if (data.length() > 0)
                 data = new StringBuilder(data.substring(0, data.length() - 3));
 
-            // First, delete the existing data for the player
+            // まず既存のプレイヤーデータを削除
             getMySQL().preparedQuery("DELETE FROM " + table + " WHERE uuid=?", playerUUID.toString());
 
-            // Then, insert the new data for the player
+            // 新しいプレイヤーデータを挿入
             getMySQL().preparedQuery("INSERT INTO " + table + " (uuid, names, inventories, data, lastActivePet) VALUES (?, ?, ?, ?, ?)",
                     playerUUID.toString(), names, inventories, data.toString(), lastActivePet);
         }
     }
 
     // -------------------------------------------------------------------------
-    // Active-pet persistence for Velocity cross-server switching
+    // Velocityクロスサーバー切り替え用アクティブペット永続化
     // -------------------------------------------------------------------------
 
     /**
-     * Upsert the active pets for a player into the dedicated table.
-     * Each entry is stored as "petId:skinUuid" (or just "petId" if no skin),
-     * comma-delimited in the pet_id column.
+     * プレイヤーのアクティブペットを専用テーブルにアップサートする。
+     * 各エントリは "petId:skinUuid"（スキンなしの場合は "petId"）形式で、
+     * pet_idカラムにカンマ区切りで保存される。
      */
     public static void saveActivePet(UUID uuid, List<String> petIds, Map<String, String> skinUuids) {
         if (!GlobalConfig.getInstance().isDatabaseSupport()) return;
@@ -304,8 +315,8 @@ public class Databases {
     }
 
     /**
-     * Load the active-pet record for a player, or null if none exists.
-     * Called on join to check whether the player arrived via a cross-server switch.
+     * プレイヤーのアクティブペットレコードを読み込む。存在しない場合はnullを返す。
+     * クロスサーバー切り替えで到着したかどうかをログイン時に確認するために呼び出す。
      */
     public static ActivePetRecord loadActivePet(UUID uuid) {
         if (!GlobalConfig.getInstance().isDatabaseSupport()) return null;
@@ -333,14 +344,14 @@ public class Databases {
                 return new ActivePetRecord(ids, skinUuids, rs.getLong("updated_at"));
             }
         } catch (SQLException e) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to load active pet record for " + uuid, e);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "アクティブペットレコードの読み込みに失敗しました: " + uuid, e);
         }
         return null;
     }
 
     /**
-     * Delete the active-pet record for a player once it has been consumed
-     * (pet spawned on destination) or when it is no longer needed.
+     * プレイヤーのアクティブペットレコードを削除する。
+     * ペットが目的地でスポーン済み、または不要になった場合に呼び出す。
      */
     public static void clearActivePet(UUID uuid) {
         if (!GlobalConfig.getInstance().isDatabaseSupport()) return;
@@ -374,7 +385,7 @@ public class Databases {
         String[] seriaTable = targetedResults.split(";;;");
 
         for (String seriaContents : seriaTable) {
-            // treats the case in which input is empty or wrongly formatted
+            // 入力が空または不正な形式の場合の処理
             if (seriaContents == null || !seriaContents.contains(";;"))
                 continue;
 
@@ -385,7 +396,7 @@ public class Databases {
                 outputMap.put(pet_id, content);
             }
             catch (IndexOutOfBoundsException ex) {
-                MCPets.getInstance().getLogger().log(Level.SEVERE, "[Database] Index out of bound for deserialization: " + seriaContents, ex);
+                MCPets.getInstance().getLogger().log(Level.SEVERE, "[データベース] デシリアライズ中にインデックス超過: " + seriaContents, ex);
             }
         }
 

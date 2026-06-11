@@ -22,8 +22,8 @@ public class PetTimer {
     private final Runnable endingRunnable;
 
     /**
-     * Constructor
-     * Frequency giving the tick when repeating the task
+     * コンストラクタ
+     * タスクを繰り返す際のtick周波数を設定する
      */
     public PetTimer(int cooldown, long frequency, Runnable endingRunnable) {
         this.cooldown = cooldown;
@@ -33,7 +33,10 @@ public class PetTimer {
     }
 
     public void launch(Runnable runnable) {
-        // If it's running then cancel the current scheduler
+        // プラグイン無効時（onDisable中など）はタスクを登録しない
+        if (MCPets.getInstance() == null || !MCPets.getInstance().isEnabled())
+            return;
+        // 実行中の場合は現在のスケジューラをキャンセルする
         if (isRunning())
             stop(null);
         remainingTime = cooldown;

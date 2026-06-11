@@ -22,45 +22,44 @@ import java.util.stream.Collectors;
 
 public class PetStats {
 
-    //------------ Object code -------------//
-    
+    //------------ オブジェクトコード -------------//
+
     @Getter
     @Setter
-    // Reference to the actual pet
+    // 実際のペットへの参照
     private Pet pet;
 
     @Getter
-    // Handles the health of the Pet
+    // ペットの体力を管理する
     private double currentHealth;
     @Getter
     private PetTimer regenerationTimer;
 
     @Getter
-    // Handles the experience of the pet
+    // ペットの経験値を管理する
     private double experience;
 
     @Getter
-    // Handles the levels
+    // レベルを管理する
     private PetLevel currentLevel;
 
     @Getter
-    // How long before the pet can be respawned after being dead
-    // In seconds
-    // -1 Indicating permanent death
+    // ペットが死亡後に再召喚できるまでの時間
+    // 秒単位
+    // -1 は永久死亡を示す
     private PetTimer respawnTimer;
 
     @Getter
-    // How long before the pet can be respawned after being revoked
-    // In seconds
-    // -1 Indicating deletion of the pet
+    // ペットが呼び戻し後に再召喚できるまでの時間
+    // 秒単位
+    // -1 はペット削除を示す
     private PetTimer revokeTimer;
 
-    // This variable is just here to make sure the timer are not ran when initializing the files
+    // ファイル初期化時にタイマーが実行されないようにするための変数
     private boolean initializingRun = true;
 
     /**
-     * Set up the basic parameters
-     * Launch the various pet stats schedulers
+     * 基本パラメータを設定し、各ペットスタットスケジューラを起動する
      */
     public PetStats(Pet pet,
                     double experience,
@@ -76,7 +75,7 @@ public class PetStats {
     }
 
     /**
-     * Update the pet's health for the stats
+     * スタット用にペットの体力を更新する
      */
     public void updateHealth() {
         if (pet.isStillHere()) {
@@ -85,26 +84,26 @@ public class PetStats {
     }
 
     /**
-     * used to refresh data that is changed by the level
+     * レベルによって変更されるデータを更新する
      */
     private void updateChangingData() {
         refreshMaxHealth();
         updateHealth();
         respawnTimer = new PetTimer(currentLevel.getRespawnCooldown(), 20, () -> {
-            // If it's an initialization run, we don't want the respawn to happen
+            // 初期化実行時はリスポーンを行わない
             if (initializingRun) {
                 initializingRun = false;
                 return;
             }
-            // Else, we check if the autorespawn could happen
+            // それ以外の場合、自動リスポーンが可能か確認する
             if (GlobalConfig.getInstance().isAutoRespawn()) {
                 Player p = Bukkit.getPlayer(pet.getOwner());
                 if (p != null && Pet.getActivePets().get(pet.getOwner()) == null) {
                     pet.spawn(p.getLocation(), true);
-                    Debugger.send("§aPet §6" + pet.getId() + "§a was autorespawned after death.");
+                    Debugger.send("§aペット §6" + pet.getId() + "§a が死亡後に自動リスポーンしました。");
                 }
                 else {
-                    Debugger.send("§cPet §6" + pet.getId() + "§c was supposed to autorespawn, but the player already has a spawned pet with him, or is disconnected.");
+                    Debugger.send("§cペット §6" + pet.getId() + "§c は自動リスポーン予定でしたが、プレイヤーが既に別のペットを召喚中か、切断されています。");
                 }
             }
         });
@@ -112,21 +111,20 @@ public class PetStats {
     }
 
     /**
-     * Launch the timers that should be triggered initially if they are not null
+     * 初期起動時にnullでなければタイマーを起動する
      */
     public void launchTimers() {
         launchRespawnTimer();
     }
 
     /**
-     * Launch how much the pet should be regenerating
-     * Can not be launched multiple times
+     * ペットの再生量を制御するタイマーを起動する（複数回起動不可）
      */
     public void launchRegenerationTimer() {
-        // If the regeneration timer is already running and not null, then do not run it again
+        // 再生タイマーが既に動作中の場合は再実行しない
         if (regenerationTimer != null && regenerationTimer.isRunning())
             return;
-        // If the regeneration is none then do not launch the scheduler coz it's useless
+        // 再生量が0以下の場合はスケジューラを起動しない
         if (currentLevel.getRegeneration() <= 0)
             return;
         regenerationTimer = new PetTimer(Integer.MAX_VALUE, 20, null);
@@ -143,7 +141,7 @@ public class PetStats {
     }
 
     /**
-     * Launch the respawn timer
+     * リスポーンタイマーを起動する
      */
     public void launchRespawnTimer() {
         if (respawnTimer != null)
@@ -155,7 +153,7 @@ public class PetStats {
     }
 
     /**
-     * Launch the revoke timer
+     * 呼び戻しタイマーを起動する
      */
     public void launchRevokeTimer() {
         if (revokeTimer != null)
@@ -163,29 +161,29 @@ public class PetStats {
     }
 
     /**
-     * Says if the pet is dead according to the saved health
-     * Useful when the pet is not spawned yet or doesn't have its stats applied on spawn
+     * 保存された体力に基づいてペットが死亡しているか判定する
+     * 未召喚時やスポーン時にスタットが適用されていない場合に有用
      */
     public boolean isDead() {
         return currentHealth <= 0;
     }
 
     /**
-     * Says whether the respawn timer is running
+     * リスポーンタイマーが動作中かどうかを返す
      */
     public boolean isRespawnTimerRunning() {
         return respawnTimer != null && respawnTimer.isRunning();
     }
 
     /**
-     * Says whether the revoke timer is running basically
+     * 呼び戻しタイマーが動作中かどうかを返す
      */
     public boolean isRevokeTimerRunning() {
         return revokeTimer != null && revokeTimer.isRunning();
     }
 
     /**
-     * Reset the Max Health of the pet to the given value
+     * ペットの最大体力を設定値にリセットする
      */
     public void refreshMaxHealth() {
         if (pet.isStillHere())
@@ -193,7 +191,7 @@ public class PetStats {
     }
 
     /**
-     * Set health to a given value
+     * 体力を指定値に設定する
      */
     public void setHealth(double value) {
         if (value >= currentLevel.getMaxHealth())
@@ -205,7 +203,7 @@ public class PetStats {
     }
 
     /**
-     * Set the pet as dead
+     * ペットを死亡状態に設定する
      */
     public void setDead() {
         setHealth(0);
@@ -213,9 +211,7 @@ public class PetStats {
     }
 
     /**
-     * Value of the health when the pet should be respawning
-     * Minimum is 1% of pet's health
-     * Maximum is 100% of pet's health
+     * リスポーン時の体力値（最小1%、最大100%）
      */
     public double getRespawnHealth()
     {
@@ -224,7 +220,7 @@ public class PetStats {
     }
 
     /**
-     * Returns the buffed applied value using the said modifier
+     * 指定モディファイアを適用したバフ後の値を返す
      */
     private double getBuffedModifier(double originalValue, PetFoodType modifier) {
         double value = originalValue;
@@ -253,21 +249,20 @@ public class PetStats {
     }
 
     /**
-     * Get the extended inventory size value
-     * Depends of the actual pet inventory size and the current level bonuses
+     * 拡張インベントリサイズを返す（基本サイズ＋レベルボーナス）
      */
     public int getExtendedInventorySize() {
         return Math.min(pet.getDefaultInventorySize() + currentLevel.getInventoryExtension(), 54);
     }
 
     /**
-     * Add the given amount of experience to the pet
+     * ペットに指定量の経験値を追加する
      */
     public boolean addExperience(double value) {
-        // That's the case for which the pet has already reached the maximum level, so it doesn't need to exp anymore
+        // 最大レベルに達している場合は経験値不要
         if (currentLevel.equals(pet.getPetLevels().get(pet.getPetLevels().size()-1)))
             return false;
-        // If there is no owner, then the pet can not gain experience
+        // オーナーがいない場合は経験値取得不可
         if (pet.getOwner() == null)
             return false;
 
@@ -276,16 +271,16 @@ public class PetStats {
         if (event.isCancelled())
             return false;
 
-        // add the experience to the pet
+        // 経験値をペットに追加
         experience = experience + event.getExperience();
-        Debugger.send("§7adding " + experience + "xp to the pet " + pet.getId());
+        Debugger.send("§7ペット " + pet.getId() + " に " + experience + "xp を追加");
 
-        // Look if there's a level up to perform
+        // レベルアップが必要か確認
         PetLevel nextLevel = getNextLevel();
         boolean levelUp = false;
         while(!nextLevel.equals(currentLevel) && nextLevel.getExpThreshold() <= experience) {
             if (nextLevel.getEvolutionId() != null && !nextLevel.canEvolve(pet.getOwner(), Pet.getFromId(nextLevel.getEvolutionId()))) {
-                Debugger.send("Pet §6" + pet.getId() + "§7 can not evolve into §a" + nextLevel.getEvolutionId() + "§7 because the player already owns the evolution.");
+                Debugger.send("ペット §6" + pet.getId() + "§7 は §a" + nextLevel.getEvolutionId() + "§7 に進化できません（プレイヤーが既に進化先を所持）。");
                 if (experience == nextLevel.getExpThreshold()-1 + event.getExperience()) {
                     experience = nextLevel.getExpThreshold() - 1;
                     return false;
@@ -295,25 +290,25 @@ public class PetStats {
                     break;
                 }
             }
-            Debugger.send("§aPet §7" + pet.getId() + "§a is leveling up to §6" + nextLevel.getLevelName());
-            // note that's there's been a levelup
+            Debugger.send("§aペット §7" + pet.getId() + "§a が §6" + nextLevel.getLevelName() + " §aにレベルアップしました");
+            // レベルアップが発生したことを記録
             levelUp = true;
-            // Play the level up skills, animations, etc... (before updating currentLevel so oldLevel is available)
+            // レベルアップ時のスキル・アニメーション等を実行（currentLevel更新前に実行してoldLevelを取得可能にする）
             nextLevel.levelUp(pet.getOwner(), currentLevel);
-            // Set the current level to the next one
+            // 現在のレベルを次のレベルに更新
             currentLevel = nextLevel;
-            // Move on the loop
+            // ループを継続
             nextLevel = getNextLevel();
         }
 
-        // If a level up happened, make sure to save it and update the actual pet
+        // レベルアップが発生した場合、保存と実際のペット更新を行う
         if (levelUp) {
             updateChangingData();
         }
 
-        // If there is no next level, set the experience so that it's the plateau value
+        // 次のレベルがない場合、経験値を上限値に設定
         if (getNextLevel().equals(currentLevel) && experience > currentLevel.getExpThreshold()) {
-            Debugger.send("§7Pet " + pet.getId() + "is §cnot leveling up§7 as it has reached §cmaximum level§7, or that you §calready own the evolution§7.");
+            Debugger.send("§7ペット " + pet.getId() + " は §cレベルアップしません§7（§c最大レベル§7 到達済み、または §c進化先を既に所持§7）。");
             experience = currentLevel.getExpThreshold();
         }
 
@@ -330,14 +325,14 @@ public class PetStats {
     }
 
     /**
-     * Apply the modified attack damages to the given amount of damages, depending of the damage modifer of the stats
+     * スタットのダメージモディファイアに基づいて攻撃ダメージを補正して返す
      */
     public double getModifiedAttackDamages(double value) {
         return value * getDamageModifier();
     }
 
     /**
-     * Apply the modified resistance to damages to the given amount of damages, depending of the damage modifer of the stats
+     * スタットの耐性モディファイアに基づいて耐性ダメージを補正して返す
      */
     public double getModifiedResistanceDamages(double value) {
         if (getResistanceModifier() == 0)
@@ -346,7 +341,7 @@ public class PetStats {
     }
 
     /**
-     * Serialize the pet stats into a string object
+     * ペットスタットを文字列にシリアライズする
      */
     public String serialize() {
         PetStatsSerializer serializer = PetStatsSerializer.build(this);
@@ -354,7 +349,7 @@ public class PetStats {
     }
 
     /**
-     * Unserialize the PetStats object
+     * PetStatsオブジェクトをデシリアライズする
      */
     public static PetStats unzerialize(String base64Str) {
         PetStatsSerializer serializer = PetStatsSerializer.unserialize(base64Str);
@@ -364,8 +359,7 @@ public class PetStats {
     }
 
     /**
-     * Save the stats in the database
-     * Runs async for SQL, runs sync otherwise coz YAML doesn't support async
+     * スタットをデータベースに保存する（SQLは非同期、YAMLは非同期非対応のため同期）
      */
     public void save() {
         if (GlobalConfig.getInstance().isDatabaseSupport()) {
@@ -380,7 +374,7 @@ public class PetStats {
     }
 
     /**
-     * Returns the current level index in the pile of possible levels of the pet
+     * ペットの可能なレベル一覧における現在のレベルインデックスを返す
      */
     public int getCurrentLevelIndex() {
         int i = 1;
@@ -392,7 +386,7 @@ public class PetStats {
         return -1;
     }
 
-    //------------ Static code -------------//
+    //------------ スタティックコード -------------//
 
     private static List<PetStats> petStatsList = new ArrayList<>();
 
@@ -403,7 +397,7 @@ public class PetStats {
     }
 
     /**
-     * Remove the pet stats corresponding to the given pet id
+     * 指定されたペットIDに対応するペットスタットを削除する
      */
     public static void remove(String petId) {
         petStatsList.removeAll(petStatsList.stream()
@@ -412,14 +406,14 @@ public class PetStats {
     }
 
     /**
-     * Remove the pet stats corresponding to the given player
+     * 指定されたプレイヤーに対応するペットスタットを削除する
      */
     public static void remove(UUID owner) {
         petStatsList.removeIf(stat -> stat.getPet().getOwner().equals(owner));
     }
 
     /**
-     * Remove the pet stats corresponding to the given owner
+     * 指定されたオーナーに対応するペットスタットを削除する
      */
     public static void remove(String petId, UUID owner) {
         petStatsList.removeAll(petStatsList.stream()
@@ -429,29 +423,29 @@ public class PetStats {
     }
 
     /**
-     * Save all the pet stats in the DB
+     * すべてのペットスタットをDBに保存する
      */
     public static void saveAll() {
         if (GlobalConfig.getInstance().isDatabaseSupport()) {
             PlayerData.saveDB();
         }
         else {
-            petStatsList.forEach(PetStats::save);
+            new ArrayList<>(petStatsList).forEach(PetStats::save);
         }
     }
 
     /**
-     * Save all pet stats asynchronously on a regular time period
+     * 定期的に全ペットスタットを保存する
      */
     public static void saveStats() {
-        // Get the auto save delay (in seconds) and transform it into ticks
+        // 自動保存遅延（秒）をtickに変換
         long delay = (long)GlobalConfig.getInstance().getAutoSave() * 20;
-        // If the delay is negative, disable the autosave
+        // 遅延が負の場合は自動保存を無効化
         if (delay <= 0)
             return;
-        // Runs ASync if it's a SQL, sync if not coz YAML doesn't support ASync
+        // SQLの場合は非同期、YAMLは非同期非対応のため同期で実行
         if (GlobalConfig.getInstance().isDatabaseSupport()) {
-            // TODO: For now, we make the AutoSave only saving the connected players for MySQL users
+            // TODO: 現時点ではMySQLユーザーの自動保存はオンラインプレイヤーのみ対象
             Bukkit.getScheduler().scheduleAsyncRepeatingTask(MCPets.getInstance(), () -> {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     Databases.savePlayerData(p.getUniqueId());
@@ -459,14 +453,14 @@ public class PetStats {
             }, delay, delay);
         }
         else {
-            Bukkit.getScheduler().scheduleSyncRepeatingTask(MCPets.getInstance(), () -> petStatsList.forEach(PetStats::save), delay, delay);
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(MCPets.getInstance(), () -> new ArrayList<>(petStatsList).forEach(PetStats::save), delay, delay);
         }
     }
 
 
     /**
-     * Find the pet stats corresponding to the pet and the defined owner if registered
-     * null if nothing is found
+     * 指定されたペットとオーナーに対応するペットスタットを検索する
+     * 見つからない場合はnullを返す
      */
     public static PetStats get(String petId, UUID owner) {
         return petStatsList.stream()
@@ -476,34 +470,32 @@ public class PetStats {
     }
 
     /**
-     * Register a pet stats
+     * ペットスタットを登録する
      */
     public static boolean register(PetStats petStats) {
-        // If there is no pet nor owner, we can not do the sanity check, so we don't register it
+        // ペットまたはオーナーが存在しない場合は登録しない
         if (petStats.getPet() == null || petStats.getPet().getOwner() == null)
             return false;
 
-        // If the pet stats is already registered, then we overwrite the previous one
+        // ペットスタットが既に登録されている場合は上書きする
         if (get(petStats.getPet().getId(), petStats.getPet().getOwner()) != null) {
             petStatsList.remove(get(petStats.getPet().getId(), petStats.getPet().getOwner()));
         }
 
-        // We register the pet stats if we found no matches for the same pet
-        // and the same owner in the current registration
+        // 同一ペット・オーナーの登録がなければペットスタットを登録する
         petStatsList.add(petStats);
         return true;
     }
 
     /**
-     * Get the first pet stats for which the timer is currently running
-     * Useful only in one case but better put it here
+     * リスポーンタイマーが動作中の最初のペットスタットを取得する
      */
     public static PetStats getPetStatsOnRespawnTimerRunning(UUID uuid) {
         return petStatsList.stream().filter(petStats -> petStats.getPet().getOwner().equals(uuid) && petStats.isRespawnTimerRunning()).findFirst().orElse(null);
     }
 
     /**
-     * Set the pet's stats values.
+     * ペットのスタット値を設定する
      */
     public void setStats(double experience, double currentHealth, PetLevel currentLevel) {
         this.experience = experience;

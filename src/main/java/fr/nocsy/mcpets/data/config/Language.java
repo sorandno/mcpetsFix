@@ -8,142 +8,142 @@ import org.bukkit.entity.Player;
 
 public enum Language {
 
-    INVENTORY_PETS_MENU("§0☀ §4Pets §0☀"),
-    INVENTORY_PETS_MENU_INTERACTIONS("§0☀ §4Pet §0☀"),
+    INVENTORY_PETS_MENU("§0☀ §4ペット §0☀"),
+    INVENTORY_PETS_MENU_INTERACTIONS("§0☀ §4ペット §0☀"),
 
-    INVENTORY_MOUNTS_MENU("§0☀ §4Mounts §0☀"),
-    INVENTORY_MOUNTS_MENU_INTERACTIONS("§0☀ §4Mount §0☀"),
+    INVENTORY_MOUNTS_MENU("§0☀ §4マウント §0☀"),
+    INVENTORY_MOUNTS_MENU_INTERACTIONS("§0☀ §4マウント §0☀"),
 
-    MOUNT_ITEM_NAME("§6Mount"),
-    MOUNT_ITEM_DESCRIPTION("§7Click to mount your pet"),
+    MOUNT_ITEM_NAME("§6乗る"),
+    MOUNT_ITEM_DESCRIPTION("§7クリックしてペットに乗る"),
 
-    RENAME_ITEM_NAME("§6Rename"),
-    RENAME_ITEM_DESCRIPTION("§7Click to rename your pet"),
+    RENAME_ITEM_NAME("§6名前を変更"),
+    RENAME_ITEM_DESCRIPTION("§7クリックしてペットの名前を変更する"),
 
-    BACK_TO_PETMENU_ITEM_NAME("§cBack to menu"),
-    BACK_TO_PETMENU_ITEM_DESCRIPTION("§7Click to get back to the menu"),
+    BACK_TO_PETMENU_ITEM_NAME("§cメニューに戻る"),
+    BACK_TO_PETMENU_ITEM_DESCRIPTION("§7クリックしてメニューに戻る"),
 
-    INVENTORY_ITEM_NAME("§6Inventory"),
-    INVENTORY_ITEM_DESCRIPTION("§7Click to open the pet's inventory"),
+    INVENTORY_ITEM_NAME("§6インベントリ"),
+    INVENTORY_ITEM_DESCRIPTION("§7クリックしてペットのインベントリを開く"),
 
-    SKINS_ITEM_NAME("§6Skins"),
-    SKINS_ITEM_DESCRIPTION("§7Click to change your pet's skin"),
+    SKINS_ITEM_NAME("§6スキン"),
+    SKINS_ITEM_DESCRIPTION("§7クリックしてペットのスキンを変更する"),
 
-    EQUIPMENT_ITEM_NAME("§6Equipment"),
-    EQUIPMENT_DESCRIPTION("§7Click to open your pet's equipment"),
+    EQUIPMENT_ITEM_NAME("§6装備"),
+    EQUIPMENT_DESCRIPTION("§7クリックしてペットの装備を開く"),
 
-    TURNPAGE_ITEM_NAME("§6Next page §7(§e%currentPage%§8/§7%maxPage%)"),
-    TURNPAGE_ITEM_DESCRIPTION("§eRight click§7 to go forward \n§aLeft click§7 to go backward"),
+    TURNPAGE_ITEM_NAME("§6次のページ §7(§e%currentPage%§8/§7%maxPage%)"),
+    TURNPAGE_ITEM_DESCRIPTION("§e右クリック§7 で次のページへ \n§a左クリック§7 で前のページへ"),
 
-    NICKNAME("§9Nickname : §7%nickname%"),
-    NICKNAME_ITEM_LORE("§cClick here to revoke your pet"),
+    NICKNAME("§9ニックネーム : §7%nickname%"),
+    NICKNAME_ITEM_LORE("§cクリックしてペットを呼び戻す"),
 
-    SUMMONED("§7A pet has been summoned !"),
-    REVOKED("§7Your pet was revoked."),
-    REVOKED_FOR_NEW_ONE("§7Your previous pet was revoked to summon the new one."),
-    REVOKED_UNKNOWN("§cThe pet could not be spawned due to one of the following reasons :" +
-            "\n§7- The provided §cMythicMob in the pet config doesn't exist§7 (try to spawn it through /mm m spawn)§7." +
-            "\n§7- The world is on §cpeaceful or easy mode§7." +
-            "\n§7- A region §cprevents the mob from spawning§7 (the anchor is an aggressive mob most likely)." +
-            "\n§7- You have a §cspawn protector plugin§7, try to spawn the mob in another world or far from spawn." +
-            "\n§7- There exist other pets with the §csame id§7. Make sure you have unique ids."),
-    MYTHICMOB_NULL("§cThis pet could not be summoned. The associated mythicMob entity or file is null or was removed."),
-    NO_MOB_MATCH("§cThis pet could not be summoned. The associated mythicmob isn't registered in MythicMobs."),
-    NOT_ALLOWED("§cYou're not allowed to summon this pet."),
-    OWNER_NOT_FOUND("§cThis pet could not be summoned. The summoner couldn't be found."),
-    REVOKED_BEFORE_CHANGES("§cYour pet was revoked before the modifications could take place."),
-    NOT_MOUNTABLE("§cThis pet has no mounting point."),
-    ALREADY_MOUNTING("§cYou are already riding something. Please dismount before you attempt again."),
-    NOT_MOUNTABLE_HERE("§cYou can't ride a pet in this area."),
-    CANT_MOUNT_PET_YET("§cYou do not have the permission to ride that pet."),
-    CANT_FOLLOW_HERE("§cYour pet can't follow you in this area."),
-    TYPE_NAME_IN_CHAT("§aWrite down in the chat the name of your pet."),
-    IF_WISH_TO_REMOVE_NAME("§aIf you wish to remove it, write §c%tag%§a in the chat."),
-    NICKNAME_CHANGED_SUCCESSFULY("§aNickname successfully changed !"),
-    NICKNAME_NOT_CHANGED("§cNickname could not be changed due to it being an empty string. Please try again."),
+    SUMMONED("§7ペットが召喚されました！"),
+    REVOKED("§7ペットが呼び戻されました。"),
+    REVOKED_FOR_NEW_ONE("§7新しいペットを召喚するため、以前のペットが呼び戻されました。"),
+    REVOKED_UNKNOWN("§cペットをスポーンできませんでした。以下のいずれかが原因の可能性があります：" +
+            "\n§7- ペット設定内の §cMythicMobが存在しない§7（/mm m spawn でスポーン確認してください）。" +
+            "\n§7- ワールドが §cピースフルまたはイージーモード§7 になっている。" +
+            "\n§7- リージョンが §cモブのスポーンを制限§7 している（アンカーが攻撃的なモブの可能性があります）。" +
+            "\n§7- §cスポーン保護プラグイン§7 が導入されています。別のワールドやスポーンから離れた場所でお試しください。" +
+            "\n§7- §c同じID§7 を持つペットが複数存在します。IDがユニークであることを確認してください。"),
+    MYTHICMOB_NULL("§cこのペットを召喚できませんでした。関連するMythicMobエンティティまたはファイルがnullか削除されています。"),
+    NO_MOB_MATCH("§cこのペットを召喚できませんでした。関連するMythicMobがMythicMobsに登録されていません。"),
+    NOT_ALLOWED("§cこのペットを召喚する権限がありません。"),
+    OWNER_NOT_FOUND("§cこのペットを召喚できませんでした。召喚者が見つかりませんでした。"),
+    REVOKED_BEFORE_CHANGES("§c変更を適用する前にペットが呼び戻されました。"),
+    NOT_MOUNTABLE("§cこのペットには乗り場がありません。"),
+    ALREADY_MOUNTING("§cすでに何かに乗っています。先に降りてから再試行してください。"),
+    NOT_MOUNTABLE_HERE("§cこのエリアではペットに乗れません。"),
+    CANT_MOUNT_PET_YET("§cこのペットに乗る権限がありません。"),
+    CANT_FOLLOW_HERE("§cこのエリアではペットはついてこられません。"),
+    TYPE_NAME_IN_CHAT("§aチャットにペットの名前を入力してください。"),
+    IF_WISH_TO_REMOVE_NAME("§a名前を削除したい場合は、チャットに §c%tag%§a と入力してください。"),
+    NICKNAME_CHANGED_SUCCESSFULY("§aニックネームを変更しました！"),
+    NICKNAME_NOT_CHANGED("§cニックネームが空のため変更できませんでした。再試行してください。"),
     TAG_TO_REMOVE_NAME("None"),
-    ALREADY_INSIDE_VEHICULE("§7You're already mounting something. Please dismount your current mount to use this feature."),
-    PET_DOESNT_EXIST("§cThis pet doesn't exist. Please check the id."),
-    PLAYER_NOT_CONNECTED("§cThe player §6%player%§c isn't connected."),
-    BLACKLISTED_WORD("§cRename operation has been cancelled. The word %word% is not allowed in a pet name."),
-    NO_ACTIVE_PET("§cYou have no active pet."),
-    SPECIFY_PET("§cYou have multiple active pets. Please specify which one: §e%pets%"),
-    SIGNAL_STICK_GIVEN("§aYou've received an order stick. Right click to cast an order, left click to switch orders."),
-    SIGNAL_STICK_SIGNAL("§6Active order : §e%signal%"),
-    LOOP_SPAWN("§cYour pet was revoked because it seems to struggle with numerous teleportations."),
-    REQUIRES_ITEM_IN_HAND("§cYou must holding an item in your hand it update it in the config."),
-    ITEM_UPDATED("§aItem updated successful with the key : §e%key%"),
-    ITEM_DOESNT_EXIST("§aThe item with the key §e%key%§c doesn't exist. If you want to add it you can use the §eadd§c argument instead."),
-    KEY_DOESNT_EXIST("§cThe specified key is not registered."),
-    KEY_REMOVED("§aThe key item was removed succesfully."),
-    KEY_ALREADY_EXISTS("§cThis key is already registered. Use it to replace the current item."),
-    KEY_ADDED("§aKey added successfully with the corresponding item."),
-    KEY_LIST("§aAvailable keys :"),
+    ALREADY_INSIDE_VEHICULE("§7すでに何かに乗っています。この機能を使用するには現在のマウントから降りてください。"),
+    PET_DOESNT_EXIST("§cこのペットは存在しません。IDを確認してください。"),
+    PLAYER_NOT_CONNECTED("§cプレイヤー §6%player%§c はオンラインではありません。"),
+    BLACKLISTED_WORD("§cリネーム操作がキャンセルされました。%word% はペット名に使用できない単語です。"),
+    NO_ACTIVE_PET("§cアクティブなペットがいません。"),
+    SPECIFY_PET("§c複数のアクティブなペットがいます。どのペットか指定してください: §e%pets%"),
+    SIGNAL_STICK_GIVEN("§aオーダースティックを受け取りました。右クリックでオーダーを発動、左クリックでオーダーを切り替えます。"),
+    SIGNAL_STICK_SIGNAL("§6アクティブなオーダー : §e%signal%"),
+    LOOP_SPAWN("§cペットが多数のテレポートに問題があったため、呼び戻されました。"),
+    REQUIRES_ITEM_IN_HAND("§c設定を更新するには手にアイテムを持って使用してください。"),
+    ITEM_UPDATED("§aアイテムをキー §e%key% §aで正常に更新しました。"),
+    ITEM_DOESNT_EXIST("§aキー §e%key%§c のアイテムは存在しません。追加する場合は §eadd§c 引数を使用してください。"),
+    KEY_DOESNT_EXIST("§c指定されたキーは登録されていません。"),
+    KEY_REMOVED("§aキーアイテムが正常に削除されました。"),
+    KEY_ALREADY_EXISTS("§cこのキーはすでに登録されています。現在のアイテムを置き換えるために使用してください。"),
+    KEY_ADDED("§aキーと対応するアイテムが正常に追加されました。"),
+    KEY_LIST("§a利用可能なキー:"),
 
-    RELOAD_SUCCESS("§aReloaded successfully."),
-    HOW_MANY_PETS_LOADED("§a%numberofpets% were registered successfully"),
+    RELOAD_SUCCESS("§a正常にリロードされました。"),
+    HOW_MANY_PETS_LOADED("§a%numberofpets% 匹のペットが正常に登録されました"),
 
-    REQUIRES_MODELENGINE("§cThis plugin requires ModelEngine R4.0.6 or BetterModel v2.0.1. It seems that this requirement is not satisfied."),
+    REQUIRES_MODELENGINE("§cこのプラグインには ModelEngine R4.0.6 または BetterModel v2.0.1 が必要です。要件が満たされていないようです。"),
 
-    USAGE("§cThis command doesn't exist. \n§7Check out the wiki: §nhttps://mcpets.gitbook.io/mcpets/tutorials/plugin-features/commands"),
-    NO_PERM("§cYou're not allowed to use this command."),
-    BLACKLISTED_WORLD("§cMCPets is disabled in this world."),
+    USAGE("§cこのコマンドは存在しません。\n§7Wikiを確認してください: §nhttps://mcpets.gitbook.io/mcpets/tutorials/plugin-features/commands"),
+    NO_PERM("§cこのコマンドを使用する権限がありません。"),
+    BLACKLISTED_WORLD("§cMCPets はこのワールドでは無効です。"),
 
-    CATEGORY_MENU_TITLE("§0☀ §4Pets §8- Pick a category §0☀"),
-    CATEGORY_DOESNT_EXIST("§cThis category does not exist."),
+    CATEGORY_MENU_TITLE("§0☀ §4ペット §8- カテゴリを選択 §0☀"),
+    CATEGORY_DOESNT_EXIST("§cこのカテゴリは存在しません。"),
 
-    PET_INVENTORY_TITLE("§0☀ §4%pet% §8- §0Inventory §0☀§"),
+    PET_INVENTORY_TITLE("§0☀ §4%pet% §8- §0インベントリ §0☀§"),
 
-    PET_INVENTORY_COULDNOT_OPEN("§cThis inventory can not be opened as it may not exist."),
+    PET_INVENTORY_COULDNOT_OPEN("§cこのインベントリは存在しないか、開けません。"),
 
-    PET_SKINS_TITLE("§0☀ §4%pet% §8- §0Skins §0☀§"),
+    PET_SKINS_TITLE("§0☀ §4%pet% §8- §0スキン §0☀§"),
 
-    SKIN_COULD_NOT_APPLY("§cThe skin could not be applied to the pet."),
-    SKIN_APPLIED("§aSkin changed successfully !"),
+    SKIN_COULD_NOT_APPLY("§cスキンをペットに適用できませんでした。"),
+    SKIN_APPLIED("§aスキンを変更しました！"),
 
-    GLOBAL_RESPAWN_TIMER_RUNNING("§cThis pet could not be spawned. You need to wait %timeLeft%s/%cooldown%s."),
-    RESPAWN_TIMER_RUNNING("§cThis pet could not be spawned. It's still recovering from its wounds. You need to wait %timeLeft%s/%cooldown%s."),
-    REVOKE_TIMER_RUNNING("§cThis pet could not be spawned. It's still recovering from its wounds. You need to wait %timeLeft%s/%cooldown%s."),
+    GLOBAL_RESPAWN_TIMER_RUNNING("§cこのペットをスポーンできません。%timeLeft%s/%cooldown%s 待ってください。"),
+    RESPAWN_TIMER_RUNNING("§cこのペットをスポーンできません。傷が癒えていません。%timeLeft%s/%cooldown%s 待ってください。"),
+    REVOKE_TIMER_RUNNING("§cこのペットをスポーンできません。傷が癒えていません。%timeLeft%s/%cooldown%s 待ってください。"),
 
-    PLAYER_OR_PET_DOESNT_EXIST("§cThis pet doesn't exist, or this player has never played on your server."),
-    STATS_CLEARED("§aAll stats have been cleared successfully !"),
-    STATS_CLEARED_FOR_PET_FOR_PLAYER("§aAll stats have been cleared successfully for the pet %petId% for the player %player%."),
-    STATS_CLEARED_FOR_PET("§aAll stats have been cleared successfully for the pet %petId%"),
+    PLAYER_OR_PET_DOESNT_EXIST("§cこのペットは存在しないか、このプレイヤーはサーバーにログインしたことがありません。"),
+    STATS_CLEARED("§aすべてのスタットが正常にクリアされました！"),
+    STATS_CLEARED_FOR_PET_FOR_PLAYER("§aプレイヤー %player% のペット %petId% のスタットが正常にクリアされました。"),
+    STATS_CLEARED_FOR_PET("§aペット %petId% のすべてのスタットが正常にクリアされました"),
 
-    PET_TAMING_PROGRESS("§7Taming progress §a%progress%% §7- %progressbar%"),
-    PET_COULD_NOT_EVOLVE("§7Your pet could not evolve because §cyou already own the evolution§7."),
-    PETFOOD_DOESNT_EXIST("§cThis pet food doesn't exist."),
-    PETUNLOCK_NOPERM("§cYou are not allowed to use this item to unlock the pet."),
-    PETUNLOCKED("§aYou've unlocked the pet %petName%, congratulations !"),
-    PETUNLOCKED_ALREADY("§cYou already own the pet §6%petName%§c."),
+    PET_TAMING_PROGRESS("§7テイム進捗 §a%progress%% §7- %progressbar%"),
+    PET_COULD_NOT_EVOLVE("§7ペットは進化できませんでした（§c進化先を既に所持§7）。"),
+    PETFOOD_DOESNT_EXIST("§cこのペットフードは存在しません。"),
+    PETUNLOCK_NOPERM("§cこのアイテムでペットをアンロックする権限がありません。"),
+    PETUNLOCKED("§aペット %petName% をアンロックしました。おめでとうございます！"),
+    PETUNLOCKED_ALREADY("§cペット §6%petName%§c はすでに所持しています。"),
 
-    PET_ALREADY_TAMED("§cThis pet is already tamed."),
-    PET_DOESNT_EAT("§cThis pet can not eat that food."),
-    PET_FOOD_ON_COOLDOWN("§cThe pet won't eat this food for another %timeleft% seconds"),
+    PET_ALREADY_TAMED("§cこのペットはすでにテイム済みです。"),
+    PET_DOESNT_EAT("§cこのペットはその食べ物を食べられません。"),
+    PET_FOOD_ON_COOLDOWN("§cあと %timeleft% 秒後にペットがこの食べ物を食べます"),
 
-    PET_STATUS_ALIVE("§aAvailable"),
-    PET_STATUS_REVOKED("§cUnavailable §7(%timeleft%s left)"),
-    PET_STATUS_DEAD("§cDead §7(%timeleft%s left)"),
+    PET_STATUS_ALIVE("§a利用可能"),
+    PET_STATUS_REVOKED("§c利用不可 §7(残り %timeleft%s)"),
+    PET_STATUS_DEAD("§c死亡中 §7(残り %timeleft%s)"),
 
-    PET_STATS("§6✦ Pet's Information ✦" +
-            "\n§7Status: %status%" +
-            "\n§6Level §7- §6%levelname%" +
+    PET_STATS("§6✦ ペット情報 ✦" +
+            "\n§7状態: %status%" +
+            "\n§6レベル §7- §6%levelname%" +
             "\n " +
             "\n§f%health%§7/§f%maxhealth% §c❤" +
-            "\n§7Regeneration: %regeneration% ❤/s" +
-            "\n§7Damage Modifier: §f%damagemodifier%%" +
-            "\n§7Resistance Modifier: §f%resistancemodifier%%" +
-            "\n§7Power: §f%power%%" +
+            "\n§7再生: %regeneration% ❤/秒" +
+            "\n§7ダメージ補正: §f%damagemodifier%%" +
+            "\n§7耐性補正: §f%resistancemodifier%%" +
+            "\n§7パワー: §f%power%%" +
             "\n " +
-            "\n§7Experience: §a%experience%/%threshold% xp" +
+            "\n§7経験値: §a%experience%/%threshold% xp" +
             "\n%progressbar%"),
 
-    PET_STATS_EVOLUTION_ALREADY_OWNED("§cEvolution already owned."),
-    PET_STATS_MAX_LEVEL("§7Maximum level reached."),
-    MAX_ACTIVE_PETS_REACHED("§cYou have reached the maximum number of active pets!"),
-    PET_REPLACED_BY_NEW("§e%oldpet% has been replaced by %newpet%!"),
-    DEBUGGER_JOINING("§aDebugger is enabled. You are now listening to it."),
-    DEBUGGER_LEAVE("§aDebugger is §7disabled§a. You will not be listening to it anymore.");
+    PET_STATS_EVOLUTION_ALREADY_OWNED("§c進化先はすでに所持しています。"),
+    PET_STATS_MAX_LEVEL("§7最大レベルに達しました。"),
+    MAX_ACTIVE_PETS_REACHED("§cアクティブなペットの上限数に達しました！"),
+    PET_REPLACED_BY_NEW("§e%oldpet% が %newpet% に入れ替わりました！"),
+    DEBUGGER_JOINING("§aデバッガーが有効になりました。デバッグ情報を受信します。"),
+    DEBUGGER_LEAVE("§aデバッガーが §7無効§a になりました。デバッグ情報を受信しません。");
 
     private String message;
 

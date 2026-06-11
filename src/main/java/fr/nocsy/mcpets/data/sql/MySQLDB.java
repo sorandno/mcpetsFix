@@ -16,9 +16,9 @@ public class MySQLDB {
     private String port;
     private String db;
 
-    /** Timestamp of the last successful connection validation. */
+    /** 最後の接続検証が成功したタイムスタンプ */
     private long lastValidationTime = 0;
-    /** Minimum interval (ms) between connection validations. */
+    /** 接続検証の最小間隔（ミリ秒） */
     private static final long VALIDATION_INTERVAL_MS = 5000;
 
     public MySQLDB(String user, String pass, String ip, String port, String db) {
@@ -30,22 +30,12 @@ public class MySQLDB {
     }
 
     public boolean init() {
-        if (this.user == null || this.pass == null || this.ip == null || this.port == null || this.db == null) {
-            MCPets.getInstance().getLogger().severe("Missing SQL parameter.");
-            MCPets.getInstance().getLogger().severe("User : " + user);
-            MCPets.getInstance().getLogger().severe("Pass : " + pass);
-            MCPets.getInstance().getLogger().severe("Host : " + ip);
-            MCPets.getInstance().getLogger().severe("Port : " + port);
-            MCPets.getInstance().getLogger().severe("DB : " + db);
-            return false;
-        }
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             String url = urlBuilder();
             this.sqlCon = DriverManager.getConnection(url, this.user, this.pass);
         }
         catch (Exception e) {
-            MCPets.getInstance().getLogger().severe("Could not reach SQL database. Please configure your database parameters.");
             return false;
         }
         return true;
@@ -58,7 +48,7 @@ public class MySQLDB {
             this.sqlCon.close();
         }
         catch (Exception e) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to close SQL connection", e);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQL接続のクローズに失敗しました", e);
         }
     }
 
@@ -84,7 +74,7 @@ public class MySQLDB {
         try {
             ensureConnection();
         } catch (SQLException e1) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to validate SQL connection", e1);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQL接続の検証に失敗しました", e1);
         }
         ResultSet set = null;
         try {
@@ -98,7 +88,7 @@ public class MySQLDB {
             }
 
         } catch (SQLException e) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQL query failed: " + s, e);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQLクエリが失敗しました: " + s, e);
         }
         return set;
     }
@@ -109,7 +99,7 @@ public class MySQLDB {
         try {
             ensureConnection();
         } catch (SQLException e1) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to validate SQL connection", e1);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQL接続の検証に失敗しました", e1);
         }
         ResultSet set = null;
         try {
@@ -125,7 +115,7 @@ public class MySQLDB {
                 pstmt.close();
             }
         } catch (SQLException e) {
-            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQL prepared query failed: " + sql, e);
+            MCPets.getInstance().getLogger().log(Level.SEVERE, "SQLプリペアドクエリが失敗しました: " + sql, e);
         }
         return set;
     }
@@ -140,7 +130,7 @@ public class MySQLDB {
                 try {
                     stat.close();
                 } catch (SQLException e) {
-                    MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to close SQL statement", e);
+                    MCPets.getInstance().getLogger().log(Level.SEVERE, "SQLステートメントのクローズに失敗しました", e);
                 }
             }
         }.runTaskLater(MCPets.getInstance(), 5L);
