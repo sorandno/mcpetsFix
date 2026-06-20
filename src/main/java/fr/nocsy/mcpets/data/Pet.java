@@ -40,6 +40,8 @@ import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.Metadatable;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
@@ -352,12 +354,24 @@ public class Pet {
      * Get the pet from the specified entity
      */
     public static Pet getFromEntity(final Entity ent) {
-        if (ent != null &&
-                ent.hasMetadata("AlmPet") &&
-                !ent.getMetadata("AlmPet").isEmpty() &&
-                ent.getMetadata("AlmPet").getFirst() != null &&
-                ent.getMetadata("AlmPet").getFirst().value() != null) {
-            return (Pet) ent.getMetadata("AlmPet").getFirst().value();
+        return getPetFromMetadata(ent, "AlmPet");
+    }
+
+    /**
+     * Extract a Pet stored under the given metadata key.
+     * <p>
+     * After a plugin reload (/reload, PlugMan, etc.) entities and players may still carry
+     * a Pet object created by the previous plugin instance. That object has the same class
+     * name but a different class loader, so a raw cast throws a ClassCastException. Using an
+     * {@code instanceof} check against the currently loaded Pet class transparently skips any
+     * such stale value instead of crashing the event handler.
+     */
+    private static Pet getPetFromMetadata(final Metadatable holder, final String key) {
+        if (holder == null || !holder.hasMetadata(key))
+            return null;
+        for (final MetadataValue meta : holder.getMetadata(key)) {
+            if (meta != null && meta.value() instanceof Pet pet)
+                return pet;
         }
         return null;
     }
@@ -404,27 +418,15 @@ public class Pet {
      * Get the pet from the last one that the player interacted with
      */
     public static Pet getFromLastInteractedWith(final Player p) {
-        if (p != null &&
-                p.hasMetadata("AlmPetInteracted") &&
-                !p.getMetadata("AlmPetInteracted").isEmpty() &&
-                p.getMetadata("AlmPetInteracted").getFirst() != null &&
-                p.getMetadata("AlmPetInteracted").getFirst().value() != null) {
-            return (Pet) p.getMetadata("AlmPetInteracted").getFirst().value();
-        }
-        return null;
+        return getPetFromMetadata(p, "AlmPetInteracted");
     }
 
     /**
      * Get the pet from the last one that the player interacted with
      */
     public static Pet getFromLastOpInteractedWith(final Player p) {
-        if (p != null && p.hasPermission(PPermission.ADMIN.getPermission()) &&
-                p.hasMetadata("AlmPetOp") &&
-                !p.getMetadata("AlmPetOp").isEmpty() &&
-                p.getMetadata("AlmPetOp").getFirst() != null &&
-                p.getMetadata("AlmPetOp").getFirst().value() != null) {
-            return (Pet) p.getMetadata("AlmPetOp").getFirst().value();
-        }
+        if (p != null && p.hasPermission(PPermission.ADMIN.getPermission()))
+            return getPetFromMetadata(p, "AlmPetOp");
         return null;
     }
 
