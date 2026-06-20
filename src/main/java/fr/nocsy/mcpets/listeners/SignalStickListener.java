@@ -12,11 +12,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
@@ -112,11 +115,12 @@ public class SignalStickListener implements Listener {
 
     /**
      * Prevent the signal stick from being placed in:
-     * - The off-hand slot (slot 40) via inventory click
+     * - Any crafting input grid or result slot (survival 2x2 grid, workbench, etc.)
+     * - The off-hand slot via inventory click or the F (swap off-hand) key
      * - Any external inventory (chest, hopper, etc.)
      * - Any crafting station (anvil, workbench, enchanting table, etc.)
-     * - The crafting result slots of the survival inventory
-     * This prevents item duplication and stock farming exploits.
+     * This prevents item duplication and stock farming exploits, including turning the
+     * stick (a blaze rod) into blaze powder through a crafting grid.
      */
     @EventHandler
     public void antiCraft(final InventoryClickEvent e) {
@@ -130,12 +134,25 @@ public class SignalStickListener implements Listener {
             final ItemStack hotbarItem = e.getWhoClicked().getInventory().getItem(e.getHotbarButton());
             movingStick = Items.isSignalStick(hotbarItem);
         }
+        if (!movingStick && e.getClick() == ClickType.SWAP_OFFHAND) {
+            // The F key swaps the hovered item with the current off-hand item
+            movingStick = Items.isSignalStick(e.getWhoClicked().getInventory().getItemInOffHand());
+        }
 
         if (!movingStick)
             return;
 
-        // Block placement in the off-hand slot (slot 40 in the player inventory view)
-        if (e.getSlot() == 40) {
+        // Block any crafting input grid or result slot. This covers the survival 2x2 grid,
+        // the workbench 3x3 grid and every result slot, closing the path used to craft the
+        // stick (a blaze rod) into blaze powder.
+        final InventoryType.SlotType slotType = e.getSlotType();
+        if (slotType == InventoryType.SlotType.CRAFTING || slotType == InventoryType.SlotType.RESULT) {
+            e.setCancelled(true);
+            return;
+        }
+
+        // Block moving the stick into the off-hand slot (direct click on slot 40 or the F key)
+        if (e.getClick() == ClickType.SWAP_OFFHAND || e.getSlot() == 40) {
             e.setCancelled(true);
             return;
         }
@@ -150,7 +167,7 @@ public class SignalStickListener implements Listener {
             return;
         }
 
-        // Block shift-clicking the stick into any open container other than the survival crafting grid
+        // Block shift-clicking the stick into any open container other than the survival inventory
         if (e.isShiftClick() && topType != InventoryType.CRAFTING) {
             e.setCancelled(true);
             return;
@@ -164,12 +181,37 @@ public class SignalStickListener implements Listener {
                 || topType == InventoryType.MERCHANT
                 || topType == InventoryType.LOOM) {
             e.setCancelled(true);
-            return;
         }
+    }
 
-        // Block placement in the survival crafting result slots (slots 80-83 of the CRAFTING view)
-        if (topType == InventoryType.CRAFTING && e.getSlot() >= 80 && e.getSlot() <= 83) {
-            e.setCancelled(true);
+    /**
+     * Prevent the signal stick from being dragged into a crafting grid, an armor/fuel slot
+     * or an external container. Dragging bypasses {@link #antiCraft(InventoryClickEvent)}
+     * and would otherwise allow turning the stick into blaze powder via a crafting grid.
+     */
+    @EventHandler
+    public void antiCraftDrag(final InventoryDragEvent e) {
+        if (!Items.isSignalStick(e.getOldCursor()))
+            return;
+
+        final InventoryView view = e.getView();
+        for (int rawSlot : e.getRawSlots()) {
+            final InventoryType.SlotType type = view.getSlotType(rawSlot);
+            if (type == InventoryType.SlotType.CRAFTING
+                    || type == InventoryType.SlotType.RESULT
+                    || type == InventoryType.SlotType.ARMOR
+                    || type == InventoryType.SlotType.FUEL) {
+                e.setCancelled(true);
+                return;
+            }
+
+            final Inventory inv = view.getInventory(rawSlot);
+            if (inv != null
+                    && inv.getType() != InventoryType.PLAYER
+                    && inv.getType() != InventoryType.CRAFTING) {
+                e.setCancelled(true);
+                return;
+            }
         }
     }
 }
