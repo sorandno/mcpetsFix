@@ -492,6 +492,39 @@ public class Pet {
     }
 
     /**
+     * Remove every Pet-related metadata that this plugin instance attached to entities and players.
+     * <p>
+     * Bukkit does not clear {@link FixedMetadataValue} when a plugin is disabled, so without this a
+     * reloaded instance would still find Pet objects created by the <em>previous</em> class loader
+     * living in entity/player metadata. Reading such a value across class loaders throws a
+     * {@link ClassCastException} (same class name, different loader — see {@link #getPetFromMetadata}).
+     * Clearing the metadata on disable removes that stale state so a reload stays consistent.
+     * <p>
+     * Only values owned by {@code MCPets.getInstance()} are removed, so this never touches metadata
+     * belonging to other plugins.
+     */
+    public static void clearMetadata() {
+        final MCPets plugin = MCPets.getInstance();
+
+        // Pet entities carry the "AlmPet" key
+        for (final List<Pet> petList : Pet.getActivePets().values()) {
+            for (final Pet pet : petList) {
+                if (pet == null || pet.getActiveMob() == null || pet.getActiveMob().getEntity() == null)
+                    continue;
+                final Entity bukkitEntity = pet.getActiveMob().getEntity().getBukkitEntity();
+                if (bukkitEntity != null)
+                    bukkitEntity.removeMetadata("AlmPet", plugin);
+            }
+        }
+
+        // Players carry the "AlmPetInteracted" / "AlmPetOp" keys
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            player.removeMetadata("AlmPetInteracted", plugin);
+            player.removeMetadata("AlmPetOp", plugin);
+        }
+    }
+
+    /**
      * Do not use this function except if you're just spawning a pet
      * Set the value of the taming progress default value
      */

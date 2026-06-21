@@ -219,6 +219,9 @@ public class MCPets extends JavaPlugin {
             getLog().log(Level.SEVERE, "Error saving data on disable", e);
         }
 
+        // Strip our own metadata before despawning so a reload never inherits Pet objects
+        // from this (soon to be dead) class loader — avoids cross-class-loader ClassCastException.
+        Pet.clearMetadata();
         Pet.clearPets();
         Databases.closeConnection();
     }
