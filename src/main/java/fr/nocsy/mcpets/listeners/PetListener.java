@@ -369,7 +369,9 @@ public class PetListener implements Listener {
         UUID uuid = e.getPlayer().getUniqueId();
         if (e.getNewGameMode() == GameMode.SPECTATOR) {
             List<Pet> pets = Pet.getActivePetsForOwner(uuid);
-            for (Pet pet : pets) {
+            // Iterate over a copy to avoid ConcurrentModificationException, since despawn()
+            // removes the pet from the same underlying list returned by getActivePetsForOwner()
+            for (Pet pet : List.copyOf(pets)) {
                 pet.despawn(PetDespawnReason.GAMEMODE);
             }
         }

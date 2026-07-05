@@ -7,7 +7,8 @@ import fr.nocsy.mcpets.data.config.Language;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class DespawnPetFlag extends AbstractFlag implements StoppableFlag {
@@ -39,23 +40,27 @@ public class DespawnPetFlag extends AbstractFlag implements StoppableFlag {
             if (MCPets.getMythicMobs() == null)
                 return;
 
-            try {
-                for (final UUID owner : Pet.getActivePets().keySet()) {
-                    for (final Pet pet : Pet.getActivePetsForOwner(owner)) {
-                        final Player p = Bukkit.getPlayer(owner);
+            // Snapshot the owner set: despawn() can remove an owner's entry entirely
+            // once their last pet is gone, which would otherwise mutate this keySet
+            // while we're iterating over it.
+            final Set<UUID> owners = Set.copyOf(Pet.getActivePets().keySet());
+            for (final UUID owner : owners) {
+                // Snapshot the pet list too: despawn() removes the pet from the same
+                // underlying list returned by getActivePetsForOwner().
+                final List<Pet> pets = List.copyOf(Pet.getActivePetsForOwner(owner));
+                for (final Pet pet : pets) {
+                    final Player p = Bukkit.getPlayer(owner);
 
-                        if (p != null) {
-                            final boolean hasToBeRemoved = testState(p.getLocation());
+                    if (p != null) {
+                        final boolean hasToBeRemoved = testState(p.getLocation());
 
-                            if (hasToBeRemoved) {
-                                pet.despawn(PetDespawnReason.FLAG);
-                                Language.CANT_FOLLOW_HERE.sendMessage(p);
-                            }
+                        if (hasToBeRemoved) {
+                            pet.despawn(PetDespawnReason.FLAG);
+                            Language.CANT_FOLLOW_HERE.sendMessage(p);
                         }
                     }
                 }
             }
-            catch (final ConcurrentModificationException ignored) {}
         }, 0L, 20L);
     }
 
