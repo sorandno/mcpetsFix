@@ -31,27 +31,14 @@ public class GeyserMountSyncTask {
      */
     private static final Set<UUID> resyncingPets = ConcurrentHashMap.newKeySet();
 
-    // Squared distance thresholds.
-    // Flying mounts: re-mount to resync passenger packet (Geyser vertical desync).
+    // Squared distance threshold for flying mounts: re-mount to resync
+    // the passenger packet (Geyser vertical desync).
     private static final double DESYNC_THRESHOLD_SQUARED = 9.0;
-    // Ground mounts: if the player has drifted this far while still "in vehicle",
-    // Geyser silently dropped the EntityDismountEvent — force-eject to clear stale state.
-    private static final double STALE_GROUND_THRESHOLD_SQ = 25.0; // 5 blocks
 
     private int task = -1;
 
     public static boolean isResyncing(final UUID petUUID) {
         return petUUID != null && resyncingPets.contains(petUUID);
-    }
-
-    public static void addResyncing(final UUID petUUID) {
-        if (petUUID != null)
-            resyncingPets.add(petUUID);
-    }
-
-    public static void removeResyncing(final UUID petUUID) {
-        if (petUUID != null)
-            resyncingPets.remove(petUUID);
     }
 
     public void launch() {

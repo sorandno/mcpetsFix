@@ -1407,18 +1407,23 @@ public class Pet {
             final UUID riderUUID = ent.getUniqueId();
             // Guard: suppress teleport/damage-dismount handlers during mount setup.
             mountingOwners.add(riderUUID);
+            boolean mounted = false;
             try {
                 if (!MCPets.getModeler().mountDriver(petUUID, ent, mountType)) {
                     Debugger.send("[setMount] mountDriver returned false - falling back to addPassenger for " + ent.getName());
                     activeMob.getEntity().getBukkitEntity().addPassenger(ent);
-                    mountingOwners.remove(riderUUID);
                     return false;
                 }
+                mounted = true;
             } catch (final IllegalStateException ex) {
                 Debugger.send("[setMount] IllegalStateException for " + ent.getName() + ": " + ex.getMessage());
                 Language.ALREADY_MOUNTING.sendMessageFormated(ent);
-                mountingOwners.remove(riderUUID);
                 return true;
+            } finally {
+                // 予期しない例外でもガードが残留してdismount系ハンドラが無効化されないようにする
+                if (!mounted) {
+                    mountingOwners.remove(riderUUID);
+                }
             }
             // Remove the guard after 2 ticks so that post-mount events (SafeTeleport,
             // fall damage, etc.) from the same tick are also suppressed.
