@@ -38,17 +38,18 @@ public class MountMenuListener implements Listener {
         e.setCancelled(true);
 
         String tag = it.hasItemMeta() ? PDCTag.get(it.getItemMeta()) : null;
-        if (tag != null && tag.contains("AlmPetPage;")) {
+        if (tag != null && (tag.contains("AlmPetPagePrevious;") || tag.contains("AlmPetPageNext;"))) {
+            if (e.getClick() != ClickType.LEFT) {
+                return;
+            }
 
+            final boolean isPrevious = tag.contains("AlmPetPagePrevious;");
             final int page = Integer.parseInt(tag.split(";")[1]);
             p.closeInventory();
 
-            final MountMenu menu;
-            if (e.getClick() == ClickType.LEFT) {
-                menu = new MountMenu(p, Math.max(page - 1, 0));
-            } else {
-                menu = new MountMenu(p, page + 1);
-            }
+            final MountMenu menu = isPrevious
+                    ? new MountMenu(p, Math.max(page - 1, 0))
+                    : new MountMenu(p, page + 1);
 
             menu.open(p);
             return;

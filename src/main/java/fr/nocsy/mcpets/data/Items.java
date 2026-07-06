@@ -192,15 +192,30 @@ public enum Items {
         return it;
     }
 
-    public static ItemStack page(int index, Player p) {
+    public static ItemStack pagePrevious(int index, Player p) {
         ItemStack it = ItemsListConfig.getInstance().getItemStack("page_selector");
         ItemMeta meta = it.getItemMeta();
-        meta.setDisplayName(Language.TURNPAGE_ITEM_NAME.getMessageFormatted(new FormatArg("%currentPage%", Integer.toString(index+1)),
+        meta.setDisplayName(Language.PREVIOUSPAGE_ITEM_NAME.getMessageFormatted(new FormatArg("%currentPage%", Integer.toString(index+1)),
                                                                             new FormatArg("%maxPage%", Integer.toString((int)((double)Pet.getAvailablePets(p).size()/54 + 0.5)))));
 
-        PDCTag.set(meta, "AlmPetPage;" + index);
+        PDCTag.set(meta, "AlmPetPagePrevious;" + index);
 
-        ArrayList<String> lore = new ArrayList<>(Arrays.asList(Language.TURNPAGE_ITEM_DESCRIPTION.getMessage().split("\n")));
+        ArrayList<String> lore = new ArrayList<>(Arrays.asList(Language.PREVIOUSPAGE_ITEM_DESCRIPTION.getMessage().split("\n")));
+        meta.setLore(lore);
+
+        it.setItemMeta(meta);
+        return it;
+    }
+
+    public static ItemStack pageNext(int index, Player p) {
+        ItemStack it = ItemsListConfig.getInstance().getItemStack("page_selector");
+        ItemMeta meta = it.getItemMeta();
+        meta.setDisplayName(Language.NEXTPAGE_ITEM_NAME.getMessageFormatted(new FormatArg("%currentPage%", Integer.toString(index+1)),
+                                                                            new FormatArg("%maxPage%", Integer.toString((int)((double)Pet.getAvailablePets(p).size()/54 + 0.5)))));
+
+        PDCTag.set(meta, "AlmPetPageNext;" + index);
+
+        ArrayList<String> lore = new ArrayList<>(Arrays.asList(Language.NEXTPAGE_ITEM_DESCRIPTION.getMessage().split("\n")));
         meta.setLore(lore);
 
         it.setItemMeta(meta);

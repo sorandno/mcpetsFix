@@ -111,7 +111,7 @@ public class PetInteractionMenuListener implements Listener {
                 final String localizedName = PDCTag.get(it.getItemMeta());
                 if (localizedName == null)
                     return;
-                if (localizedName.contains("AlmPetPage;"))
+                if (localizedName.contains("AlmPetPagePrevious;") || localizedName.contains("AlmPetPageNext;"))
                     return;
 
                 if (localizedName.equals(Items.PETMENU.getLocalizedName())) {

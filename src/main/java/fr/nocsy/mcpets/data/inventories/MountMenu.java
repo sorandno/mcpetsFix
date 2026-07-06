@@ -49,47 +49,56 @@ public class MountMenu {
         }
 
         // Count the amount of mounts that are being selected at that page
-        // One page is up to 53 mounts, so the page P has already seen 53 * P mounts
-        // 53 mounts because we gotta leave one spot available for the pager everytime
+        // One page is up to 52 mounts, so the page P has already seen 52 * P mounts
+        // 52 mounts because we have to leave one spot for the previous page button
+        // and one spot for the next page button
         final List<Pet> selectedMounts = new ArrayList<>();
-        // Let's see if we need to add a pager to the inventory
-        // Either we have more than 53 mounts or we are at a page greater than 0
-        boolean addPager = page > 0;
-        int pageSize = 53;
+        // We need a previous page button as soon as we are past the first page
+        boolean hasPrevious = page > 0;
+        // We'll know we need a next page button if there are still mounts left after this page
+        boolean hasNext = false;
+        int pageSize = 52;
         if (GlobalConfig.getInstance().getAdaptiveInventory() > 0) {
-            pageSize = GlobalConfig.getInstance().getAdaptiveInventory() - 1;
+            pageSize = GlobalConfig.getInstance().getAdaptiveInventory() - 2;
         }
         for (int i = pageSize * page; i < availableMounts.size(); i++)
         {
-            // We can not have more than 53 mounts selected at a given page
-            if(selectedMounts.size() >= 53)
+            // We can not have more than pageSize mounts selected at a given page
+            if(selectedMounts.size() >= pageSize)
             {
-                addPager = true;
+                hasNext = true;
                 break;
             }
             selectedMounts.add(availableMounts.get(i));
         }
 
+        final boolean addPager = hasPrevious || hasNext;
+
         // We can now easily compute the inventory size in the adaptive case
-        // by taking the amount of mounts selected and adding one for the pager
+        // by taking the amount of mounts selected and adding the pager slots needed
         // then we round it up to the nearest multiple of 9
         int invSize = GlobalConfig.getInstance().getAdaptiveInventory();
         if (invSize <= 0) {
-            invSize = selectedMounts.size() + 1;
+            invSize = selectedMounts.size() + (addPager ? 2 : 0);
             while (invSize % 9 != 0) {
                 invSize++;
             }
         }
 
         // Let's fill the view with the selected mounts
+        // Slot 0 is reserved for the previous page button whenever a pager is present
         inventory = new PetInventoryHolder(invSize, title, petInvType).getInventory();
+        int slot = addPager ? 1 : 0;
         for (final Pet mount : selectedMounts) {
-            inventory.addItem(mount.buildItem(mount.getIcon(), true, null, null, null, null, 0, null, null));
+            inventory.setItem(slot++, mount.buildItem(mount.getIcon(), true, null, null, null, null, 0, null, null));
         }
 
-        // If we need to add a pager, we do so
-        if (addPager) {
-            inventory.setItem(invSize - 1, Items.page(page, p));
+        // Previous page button goes in the first slot, next page button in the last slot
+        if (hasPrevious) {
+            inventory.setItem(0, Items.pagePrevious(page, p));
+        }
+        if (hasNext) {
+            inventory.setItem(invSize - 1, Items.pageNext(page, p));
         }
     }
 

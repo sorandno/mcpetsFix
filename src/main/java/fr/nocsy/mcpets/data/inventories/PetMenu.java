@@ -34,47 +34,56 @@ public class PetMenu {
         final List<Pet> availablePets = Pet.getAvailablePets(p);
 
         // Count the amount of pets that are being selected at that page
-        // One page is up to 53 pets, so the page P has already seen 53 * P pets
-        // 53 pets because we have to leave one spot available for the pager everytime
+        // One page is up to 52 pets, so the page P has already seen 52 * P pets
+        // 52 pets because we have to leave one spot for the previous page button
+        // and one spot for the next page button
         final ArrayList<Pet> selectedPets = new ArrayList<>();
-        // Let's see if we need to add a pager to the inventory
-        // Either we have more than 53 pets or we are at a page greater than 0
-        boolean addPager = page > 0;
-        int pageSize = 53;
+        // We need a previous page button as soon as we are past the first page
+        boolean hasPrevious = page > 0;
+        // We'll know we need a next page button if there are still pets left after this page
+        boolean hasNext = false;
+        int pageSize = 52;
         if (GlobalConfig.getInstance().getAdaptiveInventory() > 0) {
-            pageSize = GlobalConfig.getInstance().getAdaptiveInventory() - 1;
+            pageSize = GlobalConfig.getInstance().getAdaptiveInventory() - 2;
         }
         for (int i = pageSize * page; i < availablePets.size(); i++)
         {
-            // We can not have more than 53 pets selected at a given page
-            if(selectedPets.size() >= 53)
+            // We can not have more than pageSize pets selected at a given page
+            if(selectedPets.size() >= pageSize)
             {
-                addPager = true;
+                hasNext = true;
                 break;
             }
             selectedPets.add(availablePets.get(i));
         }
 
+        final boolean addPager = hasPrevious || hasNext;
+
         // We can now easily compute the inventory size in the adaptive case
-        // by taking the amount of pets selected and adding one for the pager
+        // by taking the amount of pets selected and adding the pager slots needed
         // then we round it up to the nearest multiple of 9
         int invSize = GlobalConfig.getInstance().getAdaptiveInventory();
         if (invSize <= 0) {
-            invSize = selectedPets.size() + 1;
+            invSize = selectedPets.size() + (addPager ? 2 : 0);
             while (invSize % 9 != 0) {
                 invSize++;
             }
         }
 
-        // Let's fill tbe view with the selected pets
+        // Let's fill the view with the selected pets
+        // Slot 0 is reserved for the previous page button whenever a pager is present
         this.inventory = new PetInventoryHolder(invSize, title, PetInventoryHolder.Type.PET_MENU).getInventory();
+        int slot = addPager ? 1 : 0;
         for (final Pet pet : selectedPets) {
-            inventory.addItem(pet.buildItem(pet.getIcon(), true, null, null, null, null, 0, null, null));
+            inventory.setItem(slot++, pet.buildItem(pet.getIcon(), true, null, null, null, null, 0, null, null));
         }
 
-        // If we need to add a pager, we do so
-        if (addPager) {
-            inventory.setItem(invSize - 1, Items.page(page, p));
+        // Previous page button goes in the first slot, next page button in the last slot
+        if (hasPrevious) {
+            inventory.setItem(0, Items.pagePrevious(page, p));
+        }
+        if (hasNext) {
+            inventory.setItem(invSize - 1, Items.pageNext(page, p));
         }
     }
 

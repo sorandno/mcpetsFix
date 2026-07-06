@@ -35,6 +35,12 @@ public enum Language {
     TURNPAGE_ITEM_NAME("§6次のページ §7(§e%currentPage%§8/§7%maxPage%)"),
     TURNPAGE_ITEM_DESCRIPTION("§e右クリック§7 で次のページへ \n§a左クリック§7 で前のページへ"),
 
+    PREVIOUSPAGE_ITEM_NAME("§c前のページ §7(§e%currentPage%§8/§7%maxPage%)"),
+    PREVIOUSPAGE_ITEM_DESCRIPTION("§a左クリック§7 で前のページへ"),
+
+    NEXTPAGE_ITEM_NAME("§6次のページ §7(§e%currentPage%§8/§7%maxPage%)"),
+    NEXTPAGE_ITEM_DESCRIPTION("§a左クリック§7 で次のページへ"),
+
     NICKNAME("§9ニックネーム : §7%nickname%"),
     NICKNAME_ITEM_LORE("§cクリックしてペットを呼び戻す"),
 

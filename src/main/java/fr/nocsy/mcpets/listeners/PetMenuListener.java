@@ -35,16 +35,18 @@ public class PetMenuListener implements Listener {
         }
 
         String tag = it.hasItemMeta() ? PDCTag.get(it.getItemMeta()) : null;
-        if (tag != null && tag.contains("AlmPetPage;")) {
+        if (tag != null && (tag.contains("AlmPetPagePrevious;") || tag.contains("AlmPetPageNext;"))) {
+            if (e.getClick() != ClickType.LEFT) {
+                return;
+            }
+
+            final boolean isPrevious = tag.contains("AlmPetPagePrevious;");
             final int page = Integer.parseInt(tag.split(";")[1]);
             p.closeInventory();
 
-            final PetMenu menu;
-            if (e.getClick() == ClickType.LEFT) {
-                menu = new PetMenu(p, Math.max(page - 1, 0));
-            } else {
-                menu = new PetMenu(p, page + 1);
-            }
+            final PetMenu menu = isPrevious
+                    ? new PetMenu(p, Math.max(page - 1, 0))
+                    : new PetMenu(p, page + 1);
             menu.open(p);
             return;
         }
