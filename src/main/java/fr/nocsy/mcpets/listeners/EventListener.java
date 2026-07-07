@@ -1,8 +1,10 @@
 package fr.nocsy.mcpets.listeners;
 
+import fr.nocsy.mcpets.MCPets;
 import fr.nocsy.mcpets.data.config.GlobalConfig;
 import fr.nocsy.mcpets.listeners.editor.EditorConversationListener;
 import fr.nocsy.mcpets.listeners.editor.EditorGlobalListener;
+import fr.nocsy.mcpets.mmocore.MMOCoreListener;
 import fr.nocsy.mcpets.mythicmobs.MythicListener;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,6 +37,13 @@ public class EventListener implements Listener {
         listeners.add(new EditorConversationListener());
 
         listeners.add(new DatabaseRefreshListener());
+
+        listeners.add(new PlayerDataEditGuiListener());
+
+        // MMOCoreのイベントクラスが解決できない状態で登録するとNoClassDefFoundErrorになるため、
+        // MMOCoreが導入されている場合のみ登録する
+        if (MCPets.isMMOCoreLoaded())
+            listeners.add(new MMOCoreListener());
 
         for (Listener l : listeners) {
             plugin.getServer().getPluginManager().registerEvents(l, plugin);

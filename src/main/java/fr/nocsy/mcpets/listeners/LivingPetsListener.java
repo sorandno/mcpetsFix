@@ -14,7 +14,9 @@ import fr.nocsy.mcpets.utils.Utils;
 import fr.nocsy.mcpets.utils.debug.Debugger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -22,6 +24,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -51,11 +54,59 @@ public class LivingPetsListener implements Listener {
         Entity entity = e.getEntity();
         Pet pet = Pet.getFromEntity(entity);
         if (pet != null && pet.getPetStats() != null) {
+            // Pets belonging to the same owner never damage each other
+            Pet attackerPet = resolveAttackerPet(e.getDamager());
+            if (attackerPet != null && pet.getOwner() != null && pet.getOwner().equals(attackerPet.getOwner())) {
+                e.setDamage(0);
+                e.setCancelled(true);
+                clearTargetIfOwnPet(attackerPet);
+                return;
+            }
+
             PetDamagedByEntityEvent event = new PetDamagedByEntityEvent(pet, e.getDamager(), e.getDamage(), true);
             Utils.callEvent(event);
 
             e.setCancelled(event.isCancelled());
             e.setDamage(event.getModifiedDamageAmount());
+        }
+    }
+
+    /**
+     * ダメージ源からペットを解決する（矢などの発射物の場合は発射者から辿る）
+     */
+    private Pet resolveAttackerPet(Entity damager) {
+        Pet pet = Pet.getFromEntity(damager);
+        if (pet != null)
+            return pet;
+        if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter)
+            return Pet.getFromEntity(shooter);
+        return null;
+    }
+
+    /**
+     * MythicMobsは独自のActiveMobターゲットシステム(threat table等)でAIの攻撃対象を管理しており、
+     * バニラのEntityTargetEventを経由しない場合があるため、両方のレイヤーでターゲットを解除する。
+     */
+    private void clearTargetIfOwnPet(Pet attackerPet) {
+        if (attackerPet == null || attackerPet.getActiveMob() == null)
+            return;
+        if (attackerPet.getActiveMob().getEntity().getBukkitEntity() instanceof Mob mob)
+            mob.setTarget(null);
+        attackerPet.getActiveMob().resetTarget();
+    }
+
+    @EventHandler
+    // 自分のペット同士は互いをターゲットにしない（＝戦わせない）
+    public void preventOwnPetTargeting(EntityTargetLivingEntityEvent e) {
+        if (e.getTarget() == null)
+            return;
+
+        Pet pet = Pet.getFromEntity(e.getEntity());
+        Pet targetPet = Pet.getFromEntity(e.getTarget());
+        if (pet != null && targetPet != null && pet.getOwner() != null && pet.getOwner().equals(targetPet.getOwner())) {
+            e.setCancelled(true);
+            e.setTarget(null);
+            clearTargetIfOwnPet(pet);
         }
     }
 
@@ -284,6 +335,9 @@ public class LivingPetsListener implements Listener {
         if (pet.getPetStats() != null) {
             PetStats stats = pet.getPetStats();
             stats.setPet(e.getPet());
+
+            // Level-less (MMOCore-driven) pets recompute their stats every time they're summoned
+            stats.refreshDynamicLevel();
 
             // Launch the regeneration timer
             stats.launchRegenerationTimer();

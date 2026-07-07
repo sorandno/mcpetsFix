@@ -35,6 +35,12 @@ public class PetBuffMechanic implements ITargetedEntitySkill {
 
         Pet pet = Pet.getFromEntity(entity);
         if (pet != null && pet.getPetStats() != null) {
+            // Pets belonging to the same owner never debuff/buff each other
+            Entity caster = BukkitAdapter.adapt(data.getCaster().getEntity());
+            Pet casterPet = Pet.getFromEntity(caster);
+            if (casterPet != null && pet.getOwner() != null && pet.getOwner().equals(casterPet.getOwner()))
+                return SkillResult.CONDITION_FAILED;
+
             // Call the experience gain on sync so it can trigger events
             final long durationValue = duration.get(data);
             final float powerValue = power.get(data);

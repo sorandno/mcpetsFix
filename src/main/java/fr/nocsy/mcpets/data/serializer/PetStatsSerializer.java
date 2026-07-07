@@ -59,10 +59,15 @@ public class PetStatsSerializer {
             return null;
         pet.setOwner(petOwner);
 
-        PetLevel currentLevel = pet.getPetLevels().stream()
-                .filter(level -> level.getLevelId().equals(levelId))
-                .findFirst()
-                .orElse(null);
+        final boolean hasLevels = pet.getPetLevels() != null && !pet.getPetLevels().isEmpty();
+        // レベル定義を持たないペット(MMOCore駆動)は保存されたlevelIdが一致するはずが無いので、
+        // 動的レベルを作り直す。実際のステータス値は次回召喚/レベル・クラス変更時に再計算される。
+        PetLevel currentLevel = hasLevels
+                ? pet.getPetLevels().stream()
+                        .filter(level -> level.getLevelId().equals(levelId))
+                        .findFirst()
+                        .orElse(null)
+                : PetLevel.createDefault(pet);
         if (currentLevel == null)
             return null;
 

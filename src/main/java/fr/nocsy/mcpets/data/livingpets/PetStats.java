@@ -7,6 +7,7 @@ import fr.nocsy.mcpets.data.serializer.PetStatsSerializer;
 import fr.nocsy.mcpets.data.sql.Databases;
 import fr.nocsy.mcpets.data.sql.PlayerData;
 import fr.nocsy.mcpets.events.PetGainExperienceEvent;
+import fr.nocsy.mcpets.mmocore.MMOCoreIntegration;
 import fr.nocsy.mcpets.utils.PetTimer;
 import fr.nocsy.mcpets.utils.Utils;
 import fr.nocsy.mcpets.utils.debug.Debugger;
@@ -180,6 +181,19 @@ public class PetStats {
      */
     public boolean isRevokeTimerRunning() {
         return revokeTimer != null && revokeTimer.isRunning();
+    }
+
+    /**
+     * レベル定義を持たないペット(MMOCore駆動)専用: オーナーの現在のMMOCoreデータから
+     * MaxHealth/Regeneration/ResistanceModifier/DamageModifier/Power/Cooldownsを再計算して適用する。
+     * レベル定義を持つペットには影響しない。
+     */
+    public void refreshDynamicLevel() {
+        if (pet.getPetLevels() != null && !pet.getPetLevels().isEmpty())
+            return;
+
+        MMOCoreIntegration.applyStats(currentLevel, Bukkit.getPlayer(pet.getOwner()));
+        updateChangingData();
     }
 
     /**

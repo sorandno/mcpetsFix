@@ -3,6 +3,7 @@ package fr.nocsy.mcpets.data.livingpets;
 import fr.nocsy.mcpets.MCPets;
 import fr.nocsy.mcpets.data.Pet;
 import fr.nocsy.mcpets.data.PetDespawnReason;
+import fr.nocsy.mcpets.data.config.GlobalConfig;
 import fr.nocsy.mcpets.data.config.Language;
 import fr.nocsy.mcpets.data.inventories.PetInventory;
 import fr.nocsy.mcpets.data.sql.PlayerData;
@@ -49,17 +50,22 @@ public class PetLevel {
     private boolean removePrevious;
 
     @Getter
+    @Setter
     // Handles the health of the pet
     private double maxHealth;
     @Getter
+    @Setter
     private double regeneration;
 
+    @Setter
     // Handles the damage resistance of the pet
     private double resistanceModifier;
 
+    @Setter
     // Handles the damage of the pet
     private double damageModifier;
 
+    @Setter
     // Handles the power of the pet
     // Used for the spells for instance
     private double power;
@@ -69,10 +75,12 @@ public class PetLevel {
     private int inventoryExtension;
 
     @Getter
+    @Setter
     // Respawn cooldown at this level
     private int respawnCooldown;
 
     @Getter
+    @Setter
     // Revoke cooldown at this level
     private int revokeCooldown;
 
@@ -296,6 +304,31 @@ public class PetLevel {
         announce(owner);
         playSkill(owner);
         evolve(owner, false);
+    }
+
+    /**
+     * レベル定義を持たないペットを「生きているペット」として扱うための初期値を持つ動的レベルを生成する。
+     * MMOCoreが利用可能な場合、実際の数値はMMOCoreIntegration.applyStats()で上書きされる。
+     */
+    public static PetLevel createDefault(final Pet pet) {
+        return new PetLevel(pet,
+                "dynamic",
+                null,
+                0,
+                false,
+                10D,
+                0.1D,
+                1D,
+                1D,
+                1D,
+                GlobalConfig.getInstance().getDefaultRespawnCooldown(),
+                0,
+                0,
+                "Living",
+                0D,
+                null,
+                null,
+                null);
     }
 
     public double getFlatDamageModifier() {

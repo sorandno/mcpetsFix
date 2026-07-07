@@ -188,5 +188,21 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- MMOCore is not published on a public Maven repository, so the jars manually placed in libs/ are referenced directly -->
+        <dependency>
+            <groupId>net.Indyuce</groupId>
+            <artifactId>mmocore</artifactId>
+            <version>1.13.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/MMOCore-1.13.1-20260531.191529-59.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>io.lumine</groupId>
+            <artifactId>mythiclib-dist</artifactId>
+            <version>1.7.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/MythicLib-dist-1.7.1-20260610.223017-103.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>

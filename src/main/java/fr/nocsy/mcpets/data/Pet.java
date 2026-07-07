@@ -35,6 +35,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.inventory.ItemStack;
@@ -464,10 +466,14 @@ public class Pet {
 
         for (final Pet pet : objectPets) {
             if (pet.isCheckPermission()) {
-                if (p.hasPermission(pet.getPermission())) {
+                if (pet.has(p)) {
                     final Pet updatedPet = pet.copy();
                     updatedPet.setOwner(p.getUniqueId());
-                    updatedPet.setPetStats();
+                    // Do NOT eagerly create PetStats here: this is a read-only "what can this
+                    // player see" listing, not a spawn action. PetStats must only come into
+                    // existence via spawn()'s lazy setPetStats() call, so that "has PetStats"
+                    // stays a meaningful signal of a pet actually having been summoned at least
+                    // once (used e.g. by playerdataeditgui to decide who "owns" a pet).
 
                     pets.add(updatedPet);
                 }
@@ -595,16 +601,21 @@ public class Pet {
      * Setup the pet stats if possible
      */
     private void setPetStats() {
-        // We do not setup pet stats if :
-        // - The pet already has stats
-        // - The pet has no registered levels (it's not a living pet then)
-        if (petStats != null || petLevels == null || petLevels.isEmpty())
+        // We do not setup pet stats if it already has some
+        if (petStats != null)
             return;
+
+        // A pet with no registered levels is still treated as a living pet: it gets a
+        // dynamic PetLevel whose stats are driven by MMOCore (see PetStats.refreshDynamicLevel(),
+        // hooked on every PetSpawnedEvent).
+        final PetLevel initialLevel = (petLevels == null || petLevels.isEmpty())
+                ? PetLevel.createDefault(this)
+                : petLevels.getFirst();
 
         // If it already has registered pet stats, then we just read them from the loaded ones
         // Else we create default pet stats that will server as the base
         petStats = Optional.ofNullable(PetStats.get(id, owner)).orElseGet(() -> {
-            final PetStats start = new PetStats(this, 0, petLevels.getFirst().getMaxHealth(), petLevels.getFirst());
+            final PetStats start = new PetStats(this, 0, initialLevel.getMaxHealth(), initialLevel);
             // We register the pet stats if we have new ones created
             PetStats.register(start);
             return start;
@@ -1048,6 +1059,20 @@ public class Pet {
                     getInstance().despawn(PetDespawnReason.AI_TRACK_DESPAWN);
                     stopAI();
                     return;
+                }
+
+                // Safety net: MythicMobs manages AI targeting through its own ActiveMob target
+                // system rather than always going through Bukkit's target events, so periodically
+                // clear any lingering target that ended up being another pet of the same owner.
+                if (activeMob.getEntity().getBukkitEntity() instanceof Mob mobEntity) {
+                    final LivingEntity currentTarget = mobEntity.getTarget();
+                    if (currentTarget != null) {
+                        final Pet targetPet = Pet.getFromEntity(currentTarget);
+                        if (targetPet != null && owner != null && owner.equals(targetPet.getOwner())) {
+                            mobEntity.setTarget(null);
+                            activeMob.resetTarget();
+                        }
+                    }
                 }
 
                 final String permission = getInstance().getPermission();

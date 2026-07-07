@@ -53,6 +53,7 @@ public class MCPets extends JavaPlugin {
     private static boolean luckPermsNotFound = false;
     private static boolean nexoFound = false;
     private static boolean nexoChecked = false;
+    private static boolean mmoCoreFound = false;
 
     @Getter
     private static AbstractModeler modeler;
@@ -111,6 +112,7 @@ public class MCPets extends JavaPlugin {
         nexoFound = false;
         nexoChecked = false;
         luckPermsNotFound = false;
+        mmoCoreFound = false;
         modeler = null;
 
         if (!checkMythicMobs()) {
@@ -127,6 +129,7 @@ public class MCPets extends JavaPlugin {
         checkLuckPerms();
         checkPlaceholderApi();
         checkItemsAdder();
+        checkMMOCore();
 
         try {
             if (GlobalConfig.getInstance().isWorldguardsupport()) {
@@ -280,6 +283,26 @@ public class MCPets extends JavaPlugin {
             itemsAdderFound = false;
             getLog().warning("ItemsAdder could not be found. IA Custom items features won't be available.");
         }
+    }
+
+    /**
+     * Check if MMOCore is loaded on the server
+     */
+    private static void checkMMOCore() {
+        try {
+            Class.forName("net.Indyuce.mmocore.MMOCore");
+            mmoCoreFound = true;
+            getLog().info("MMOCore found. Level-less pets can scale their stats from MMOCore player data.");
+        } catch (final ClassNotFoundException | NoClassDefFoundError e) {
+            mmoCoreFound = false;
+        }
+    }
+
+    /**
+     * Check MMOCore is loaded or not
+     */
+    public static boolean isMMOCoreLoaded() {
+        return mmoCoreFound;
     }
 
     /**

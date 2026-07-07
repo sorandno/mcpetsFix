@@ -43,5 +43,11 @@ public class PetInventoryHolder implements InventoryHolder {
         PET_INVENTORY_MENU,
         PET_MENU,
         PET_SKINS_MENU,
+        PLAYERDATAEDIT_PLAYERS,
+        PLAYERDATAEDIT_PETS,
+        PLAYERDATAEDIT_ACTIONS,
+        PLAYERDATAEDIT_LEVELS,
+        PLAYERDATAEDIT_STATUS,
+        PLAYERDATAEDIT_CONFIRM,
     }
 }

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 public class PermsUtils {
 
@@ -68,13 +69,24 @@ public class PermsUtils {
     }
 
     /**
-     * Check if the player has the permission
+     * Check if the player has the permission.
+     * <p>
+     * We deliberately do NOT use {@code user.getCachedData().getPermissionData().checkPermission(...)}:
+     * LuckPerms applies vanilla "server operators bypass all permission checks" handling at that
+     * calculated layer by default, so an OP would appear to hold every mcpets.pet.* node even when
+     * none were ever granted. Reading the user's actual (inherited) nodes instead ignores OP status
+     * entirely and reflects only what was really granted via LuckPerms.
      */
     protected static boolean hasPermission(@NotNull UUID uuid, String permission) {
         if (MCPets.getLuckPerms() != null) {
             User user = MCPets.getLuckPerms().getUserManager().getUser(uuid);
             if (user != null) {
-                return user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
+                final Predicate<Node> matches = node -> node.getKey().equalsIgnoreCase(permission);
+                return user.resolveInheritedNodes(user.getQueryOptions()).stream()
+                        .filter(matches)
+                        .findFirst()
+                        .map(Node::getValue)
+                        .orElse(false);
             }
         }
 

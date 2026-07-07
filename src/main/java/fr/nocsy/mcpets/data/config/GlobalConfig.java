@@ -124,6 +124,22 @@ public class GlobalConfig extends AbstractConfig {
     @Getter
     private int velocitySwitchWindow;
 
+    // MMOCore駆動のレベル無しペット用の倍率設定
+    @Getter
+    private double mmoCoreMaxHealthMultiplier;
+    @Getter
+    private double mmoCoreRegenerationPerLevel;
+    @Getter
+    private double mmoCoreResistanceModifierPerLevel;
+    @Getter
+    private double mmoCoreDamageModifierPerLevel;
+    @Getter
+    private double mmoCorePowerPerLevel;
+    @Getter
+    private double mmoCoreRespawnCooldownPerLevel;
+    @Getter
+    private int mmoCoreRevokeCooldown;
+
     public static GlobalConfig getInstance() {
         if (instance == null)
             instance = new GlobalConfig();
@@ -233,6 +249,21 @@ public class GlobalConfig extends AbstractConfig {
         if (getConfig().get("Velocity.SwitchWindow") == null)
             getConfig().set("Velocity.SwitchWindow", 60);
 
+        if (getConfig().get("MMOCore.MaxHealthMultiplier") == null)
+            getConfig().set("MMOCore.MaxHealthMultiplier", 1.0);
+        if (getConfig().get("MMOCore.RegenerationPerLevel") == null)
+            getConfig().set("MMOCore.RegenerationPerLevel", 0.01);
+        if (getConfig().get("MMOCore.ResistanceModifierPerLevel") == null)
+            getConfig().set("MMOCore.ResistanceModifierPerLevel", 0.02);
+        if (getConfig().get("MMOCore.DamageModifierPerLevel") == null)
+            getConfig().set("MMOCore.DamageModifierPerLevel", 0.1);
+        if (getConfig().get("MMOCore.PowerPerLevel") == null)
+            getConfig().set("MMOCore.PowerPerLevel", 0.1);
+        if (getConfig().get("MMOCore.RespawnCooldownPerLevel") == null)
+            getConfig().set("MMOCore.RespawnCooldownPerLevel", 1.0);
+        if (getConfig().get("MMOCore.RevokeCooldown") == null)
+            getConfig().set("MMOCore.RevokeCooldown", 60);
+
         save();
         reload();
     }
@@ -311,6 +342,14 @@ public class GlobalConfig extends AbstractConfig {
         spawnPetAfterServerRestart = getConfig().getBoolean("SpawnPetAfterServerRestart");
         maxActivePets = getConfig().getInt("MaxActivePets");
         maxActiveMounts = getConfig().getInt("MaxActiveMounts");
+
+        mmoCoreMaxHealthMultiplier = getConfig().getDouble("MMOCore.MaxHealthMultiplier");
+        mmoCoreRegenerationPerLevel = getConfig().getDouble("MMOCore.RegenerationPerLevel");
+        mmoCoreResistanceModifierPerLevel = getConfig().getDouble("MMOCore.ResistanceModifierPerLevel");
+        mmoCoreDamageModifierPerLevel = getConfig().getDouble("MMOCore.DamageModifierPerLevel");
+        mmoCorePowerPerLevel = getConfig().getDouble("MMOCore.PowerPerLevel");
+        mmoCoreRespawnCooldownPerLevel = getConfig().getDouble("MMOCore.RespawnCooldownPerLevel");
+        mmoCoreRevokeCooldown = getConfig().getInt("MMOCore.RevokeCooldown");
     }
 
     public boolean hasBlackListedWorld(String worldName) {

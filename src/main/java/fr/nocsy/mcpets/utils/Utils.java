@@ -261,15 +261,16 @@ public class Utils {
      * Check if the player has the permission
      */
     public static boolean hasPermission(@NotNull final UUID uuid, final String permission) {
-        boolean hasPerm = false;
-        final Player p = Bukkit.getPlayer(uuid);
-        if (p != null) {
-            hasPerm = p.hasPermission(permission);
-        }
-        if (!hasPerm && MCPets.getLuckPerms() != null) {
+        // LuckPerms is authoritative when present: Bukkit's raw hasPermission() falls back to
+        // PermissionDefault.OP for any permission that isn't explicitly registered/set, which
+        // means operators would appear to have every dynamic mcpets.pet.* node. Asking LuckPerms
+        // directly resolves strictly from the player's actual granted nodes/groups instead.
+        if (MCPets.getLuckPerms() != null) {
             return PermsUtils.hasPermission(uuid, permission);
         }
-        return hasPerm;
+
+        final Player p = Bukkit.getPlayer(uuid);
+        return p != null && p.hasPermission(permission);
     }
 
     /**
